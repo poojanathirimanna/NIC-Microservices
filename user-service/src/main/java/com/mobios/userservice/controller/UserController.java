@@ -6,8 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -15,7 +13,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    // ✅ Register endpoint
+    // ✅ Register new user
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
@@ -27,19 +25,5 @@ public class UserController {
         }
     }
 
-    // ✅ Login endpoint
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User user) {
-        Optional<User> loggedInUser = userService.loginUser(user.getUsername(), user.getPassword());
-        return loggedInUser.isPresent() ?
-                ResponseEntity.ok("Login Successful") :
-                ResponseEntity.status(401).body("Invalid Credentials");
-    }
-
-    // ✅ Logout endpoint
-    @PostMapping("/logout")
-    public ResponseEntity<String> logout() {
-        // For now, just return success since no token/session is being tracked
-        return ResponseEntity.ok("Logout Successful");
-    }
+    // You can later add: getUserById, updateUser, deleteUser etc.
 }

@@ -20,17 +20,25 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        // ✅ Skip JWT check for public routes
+        String path = request.getRequestURI();
+        if (path.startsWith("/api/auth/login") ||
+                path.startsWith("/api/users/register") ||
+                path.startsWith("/api/auth/forgot-password")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // ✅ JWT Token check
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
-
             if (jwtUtil.validateToken(token)) {
                 String username = jwtUtil.extractUsername(token);
-                // ✅ You can set Spring Security context here if you want roles/auth
+                // Optionally set SecurityContext here
             }
         }
 
         chain.doFilter(request, response);
-
     }
 }

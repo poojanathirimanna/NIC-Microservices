@@ -8,5 +8,5 @@ import com.mobios.userservice.model.User;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
-    // ✅ Additional method to find user by username and email
+    Optional<User> findByUsernameAndEmail(String username, String email);
 }
