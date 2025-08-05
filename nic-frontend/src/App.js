@@ -1,26 +1,25 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import ProtectedRoute from './components/ProtectedRoute'; // ✅ Make sure this file exists
 
 function App() {
-  const isAuthenticated = !!localStorage.getItem('token');
-
   return (
     <Router>
       <Routes>
-        {/* 🔐 If authenticated → show Home; otherwise → redirect to Login */}
+        {/* 🔒 Protected Home Route */}
         <Route
           path="/"
           element={
-            isAuthenticated ? (
-              <h1>Home Page</h1>
-            ) : (
-              <Navigate to="/login" replace />
-            )
+            <ProtectedRoute>
+              <h1>Home Page</h1> {/* ✅ You can replace this with <HomePage /> */}
+            </ProtectedRoute>
           }
         />
+
+        {/* 🔓 Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />

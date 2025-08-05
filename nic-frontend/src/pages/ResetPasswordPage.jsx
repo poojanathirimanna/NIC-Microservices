@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
-import { useNavigate } from 'react-router-dom';
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     newPassword: '',
   });
+
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!location.state?.fromLogin) {
+      navigate('/login');
+    }
+  }, [location, navigate]);
+
+  if (!location.state?.fromLogin) return null;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,57 +39,120 @@ const ResetPasswordPage = () => {
         newPassword: formData.newPassword,
       });
 
-      setMessage('Password reset successful. Please log in with your new password.');
+      setMessage('✅ Password reset successful. Redirecting to login...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Reset failed. Please check username/email.');
+      setError(err.response?.data?.message || '❌ Reset failed. Please check username/email.');
     }
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '60px auto', padding: 20, border: '1px solid #ccc' }}>
-      <h2>Reset Password</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 10 }}>
-          <label>Username</label>
+    <div style={styles.page}>
+      <div style={styles.card}>
+        <h2 style={styles.title}>🔒 Reset Password</h2>
+        <form onSubmit={handleSubmit} style={styles.form}>
           <input
             type="text"
             name="username"
+            placeholder="Username"
             value={formData.username}
             onChange={handleChange}
             required
-            style={{ width: '100%', padding: 8 }}
+            style={styles.input}
           />
-        </div>
-        <div style={{ marginBottom: 10 }}>
-          <label>Email</label>
           <input
             type="email"
             name="email"
+            placeholder="Email"
             value={formData.email}
             onChange={handleChange}
             required
-            style={{ width: '100%', padding: 8 }}
+            style={styles.input}
           />
-        </div>
-        <div style={{ marginBottom: 10 }}>
-          <label>New Password</label>
           <input
             type="password"
             name="newPassword"
+            placeholder="New Password"
             value={formData.newPassword}
             onChange={handleChange}
             required
-            style={{ width: '100%', padding: 8 }}
+            style={styles.input}
           />
-        </div>
-
-        <button type="submit" style={{ width: '100%', padding: 10 }}>Reset Password</button>
-        {message && <p style={{ color: 'green' }}>{message}</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-      </form>
+          {message && <p style={styles.message}>{message}</p>}
+          {error && <p style={styles.error}>{error}</p>}
+          <button type="submit" style={styles.button}>🔁 Reset</button>
+        </form>
+      </div>
     </div>
   );
+};
+
+const styles = {
+  page: {
+    height: '100vh',
+    width: '100vw',
+    overflow: 'hidden',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    background: 'transparent',
+    fontFamily: 'Segoe UI, sans-serif',
+  },
+  card: {
+    width: 400,
+    padding: 35,
+    borderRadius: 16,
+    background: 'rgba(255, 255, 255, 0.15)',
+    boxShadow: '0 8px 32px 0 rgba(0,0,0,0.25)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    textAlign: 'center',
+    color: '#fff',
+  },
+  title: {
+    fontSize: '26px',
+    fontWeight: 'bold',
+    marginBottom: 25,
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 40,
+  },
+  input: {
+    padding: 12,
+    fontSize: 16,
+    borderRadius: 8,
+    border: 'none',
+    outline: 'none',
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    color: '#fff',
+    transition: 'all 0.3s ease',
+  },
+  button: {
+    padding: 12,
+    fontSize: 16,
+    borderRadius: 8,
+    border: 'none',
+    backgroundColor: '#00A5B8',
+    color: '#fff',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+  },
+  message: {
+    color: '#00e676',
+    fontSize: 14,
+    marginTop: 10,
+  },
+  error: {
+    color: '#D32F2F',
+    backgroundColor: 'rgba(211, 47, 47, 0.1)',
+    padding: '8px',
+    borderRadius: '6px',
+    fontSize: 14,
+  },
 };
 
 export default ResetPasswordPage;
