@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import api from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ const LoginPage = () => {
       }
 
       // Redirect on success
-      navigate('/'); // or /dashboard
+      navigate('/');
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || 'Login failed');
@@ -67,6 +67,14 @@ const LoginPage = () => {
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <button type="submit" style={{ width: '100%', padding: 10 }}>Login</button>
       </form>
+
+      {/* 🔗 Register & Forgot Password Links */}
+      <div style={{ marginTop: 10 }}>
+        Don't have an account? <Link to="/register">Register</Link>
+      </div>
+      <div style={{ marginTop: 5 }}>
+        <Link to="/reset-password">Forgot your password?</Link>
+      </div>
     </div>
   );
 };
