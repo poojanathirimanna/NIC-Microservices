@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import ProtectedRoute from './components/ProtectedRoute'; // ✅ Make sure this file exists
+import ProtectedRoute from './components/ProtectedRoute';
+import NICUploadPage from './pages/NICUploadPage';
 
 function App() {
   return (
@@ -14,7 +15,17 @@ function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <h1>Home Page</h1> {/* ✅ You can replace this with <HomePage /> */}
+              <h1>Home Page</h1> {/* You can replace with <HomePage /> if needed */}
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 🔒 Protected NIC Upload Route */}
+        <Route
+          path="/upload-nic"
+          element={
+            <ProtectedRoute>
+              <NICUploadPage />
             </ProtectedRoute>
           }
         />

@@ -17,7 +17,7 @@ const LoginPage = () => {
     try {
       const response = await api.post('/auth/login', formData);
       if (response.data.token) localStorage.setItem('token', response.data.token);
-      navigate('/');
+      navigate('/upload-nic', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     }
@@ -115,7 +115,7 @@ const styles = {
     textDecoration: 'underline',
   },
   error: {
-    color: '#ff4d4f',
+    color: '#8B0000',
     backgroundColor: 'rgba(255, 0, 0, 0.15)',
     padding: '8px',
     borderRadius: '6px',
