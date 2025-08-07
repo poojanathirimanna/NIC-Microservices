@@ -1,4 +1,4 @@
-package com.mobios.userservice.security;
+package com.mobiOS.nic_validation_service.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
