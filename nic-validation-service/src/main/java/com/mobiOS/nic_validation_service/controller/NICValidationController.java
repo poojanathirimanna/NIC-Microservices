@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.mobiOS.nic_validation_service.security.JwtUtil;
 import java.util.*;
 
 @RestController
@@ -16,9 +16,14 @@ public class NICValidationController {
 
     @Autowired
     private NICValidationService nicService;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/upload")
-    public ResponseEntity<Map<String, Object>> uploadFiles(@RequestParam("files") MultipartFile[] files) {
+    public ResponseEntity<Map<String, Object>> uploadFiles(
+            @RequestParam("files") MultipartFile[] files,
+            @RequestHeader("Authorization") String authHeader // ✅ Extract token
+    ) {
         Map<String, Object> response = new LinkedHashMap<>();
 
         if (files.length != 4) {
@@ -27,13 +32,16 @@ public class NICValidationController {
             return ResponseEntity.badRequest().body(response);
         }
 
+        String token = authHeader.replace("Bearer ", "");
+        String username = jwtUtil.getUsernameFromToken(token); // ✅ You need JwtUtil for this
+
         List<NICRecord> allInsertedRecords = new ArrayList<>();
         List<String> allSkippedNICs = new ArrayList<>();
         int fileErrors = 0;
 
         for (MultipartFile file : files) {
             try {
-                Map<String, Object> result = nicService.processCSV(file);
+                Map<String, Object> result = nicService.processCSV(file, username); // ✅ Pass username
                 allInsertedRecords.addAll((List<NICRecord>) result.get("inserted"));
                 allSkippedNICs.addAll((List<String>) result.get("skipped"));
             } catch (Exception e) {
@@ -54,8 +62,4 @@ public class NICValidationController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<List<NICRecord>> getAll() {
-        return ResponseEntity.ok(nicService.getAllRecords());
-    }
 }

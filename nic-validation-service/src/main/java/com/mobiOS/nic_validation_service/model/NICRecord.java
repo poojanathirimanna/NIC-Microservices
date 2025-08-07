@@ -24,6 +24,7 @@ public class NICRecord {
     private int age;
     private String gender;
     private String fileName;
+    private String username;
 
     @Builder.Default
     private LocalDate createdAt = LocalDate.now();

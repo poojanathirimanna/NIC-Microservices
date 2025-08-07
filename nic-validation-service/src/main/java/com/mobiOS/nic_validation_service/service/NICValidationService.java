@@ -22,7 +22,7 @@ public class NICValidationService {
     private NICRecordRepository repository;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public Map<String, Object> processCSV(MultipartFile file) {
+    public Map<String, Object> processCSV(MultipartFile file, String username) {
         List<NICRecord> insertedRecords = new ArrayList<>();
         List<String> skippedNICs = new ArrayList<>();
 
@@ -46,7 +46,11 @@ public class NICValidationService {
                             .gender(gender)
                             .fileName(file.getOriginalFilename())
                             .createdAt(LocalDate.now())
+                            .username(username) // ✅ stores the user who uploaded
                             .build();
+
+
+
 
                     NICRecord saved = repository.save(record);
                     insertedRecords.add(saved);
