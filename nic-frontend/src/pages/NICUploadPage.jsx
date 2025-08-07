@@ -71,6 +71,7 @@ const NICUploadPage = () => {
                 <th style={styles.th}>DOB</th>
                 <th style={styles.th}>Age</th>
                 <th style={styles.th}>Gender</th>
+                <th style={styles.th}>File Name</th>
               </tr>
             </thead>
             <tbody>
@@ -80,6 +81,8 @@ const NICUploadPage = () => {
                   <td style={styles.td}>{r.birthday}</td>
                   <td style={styles.td}>{r.age}</td>
                   <td style={styles.td}>{r.gender}</td>
+                  <td style={styles.td}>{r.fileName}</td>
+
                 </tr>
               ))}
             </tbody>

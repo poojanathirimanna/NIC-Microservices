@@ -1,68 +1,91 @@
-// src/pages/DashboardPage.jsx
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Grid, Card, CardContent } from '@mui/material';
+import { Box, Typography, Card, CardContent, Grid } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
-import nicapi from '../services/nicapi'; // ✅ Use nicapi for NIC microservice
+import { PieChart } from '@mui/x-charts/PieChart';
+import axios from 'axios';
 
 const DashboardPage = () => {
-  const [summary, setSummary] = useState({
-    totalRecords: 0,
-    maleCount: 0,
-    femaleCount: 0
-  });
+  const [summary, setSummary] = useState({ total: 0, male: 0, female: 0 });
 
   useEffect(() => {
-    nicapi.get('/dashboard-summary') // ✅ no need for /api prefix here, since baseURL already has /api
-      .then(res => {
+    const fetchSummary = async () => {
+      const token = localStorage.getItem('token'); // adjust if using context
+      try {
+        const res = await axios.get('http://localhost:8082/api/dashboard/summary', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         setSummary(res.data);
-      })
-      .catch(err => {
-        console.error('❌ Failed to load summary:', err);
-      });
+      } catch (err) {
+        console.error('Error fetching dashboard summary:', err);
+      }
+    };
+
+    fetchSummary();
   }, []);
 
-  const chartData = [
-    { label: 'Male', value: summary.maleCount },
-    { label: 'Female', value: summary.femaleCount }
+  const barData = [
+    { label: 'Male', value: summary.male },
+    { label: 'Female', value: summary.female },
+  ];
+
+  const pieData = [
+    { id: 0, value: summary.male, label: 'Male' },
+    { id: 1, value: summary.female, label: 'Female' },
   ];
 
   return (
-    <Box sx={{ padding: 4, minHeight: '100vh', background: 'linear-gradient(to right, #4a55a2, #7895cb)' }}>
-      <Typography variant="h5" fontWeight="bold" color="white" gutterBottom>
-        Dashboard Summary
-      </Typography>
+    <Box p={4}>
+      <Typography variant="h4" mb={3}>📊 Dashboard Summary</Typography>
 
-      <Grid container spacing={3} sx={{ marginBottom: 4 }}>
-        <StatCard title="Total Records" value={summary.totalRecords} />
-        <StatCard title="Male" value={summary.maleCount} />
-        <StatCard title="Female" value={summary.femaleCount} />
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Total Records</Typography>
+              <Typography variant="h4">{summary.total}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Male Records</Typography>
+              <Typography variant="h4">{summary.male}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Female Records</Typography>
+              <Typography variant="h4">{summary.female}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
 
-      <Typography variant="subtitle1" fontWeight="bold" color="white" gutterBottom>
-        Gender Distribution
-      </Typography>
-
-      <Box sx={{ background: 'white', borderRadius: 2, p: 2, maxWidth: 600 }}>
+      <Box mt={5}>
+        <Typography variant="h6">Bar Chart</Typography>
         <BarChart
-          xAxis={[{ scaleType: 'band', data: chartData.map(item => item.label) }]}
-          series={[{ data: chartData.map(item => item.value), label: 'Count' }]}
+          xAxis={[{ scaleType: 'band', data: barData.map((item) => item.label) }]}
+          series={[{ data: barData.map((item) => item.value) }]}
           width={500}
+          height={300}
+        />
+      </Box>
+
+      <Box mt={5}>
+        <Typography variant="h6">Pie Chart</Typography>
+        <PieChart
+          series={[{ data: pieData }]}
+          width={400}
           height={300}
         />
       </Box>
     </Box>
   );
 };
-
-const StatCard = ({ title, value }) => (
-  <Grid item xs={12} sm={4}>
-    <Card sx={{ background: '#fff' }}>
-      <CardContent>
-        <Typography variant="subtitle1" fontWeight="bold">{title}</Typography>
-        <Typography variant="h4">{value}</Typography>
-      </CardContent>
-    </Card>
-  </Grid>
-);
 
 export default DashboardPage;
