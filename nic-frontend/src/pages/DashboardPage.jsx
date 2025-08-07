@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Grid, Card, CardContent } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
-import axios from '../services/api'; // ✅ assuming this has axios with baseURL + token setup
+import nicapi from '../services/nicapi'; // ✅ Use nicapi for NIC microservice
 
 const DashboardPage = () => {
   const [summary, setSummary] = useState({
@@ -12,16 +12,16 @@ const DashboardPage = () => {
   });
 
   useEffect(() => {
-    axios.get('/api/nic/dashboard-summary')
+    nicapi.get('/dashboard-summary') // ✅ no need for /api prefix here, since baseURL already has /api
       .then(res => {
         setSummary(res.data);
       })
       .catch(err => {
-        console.error('Failed to load summary:', err);
+        console.error('❌ Failed to load summary:', err);
       });
   }, []);
 
-  const data = [
+  const chartData = [
     { label: 'Male', value: summary.maleCount },
     { label: 'Female', value: summary.femaleCount }
   ];
@@ -44,8 +44,8 @@ const DashboardPage = () => {
 
       <Box sx={{ background: 'white', borderRadius: 2, p: 2, maxWidth: 600 }}>
         <BarChart
-          xAxis={[{ scaleType: 'band', data: data.map(item => item.label) }]}
-          series={[{ data: data.map(item => item.value), label: 'Count' }]}
+          xAxis={[{ scaleType: 'band', data: chartData.map(item => item.label) }]}
+          series={[{ data: chartData.map(item => item.value), label: 'Count' }]}
           width={500}
           height={300}
         />
