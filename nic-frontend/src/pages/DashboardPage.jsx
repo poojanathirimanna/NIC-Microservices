@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardContent, Grid } from '@mui/material';
+import { Box, Typography, Card, CardContent, Grid, Divider } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { PieChart } from '@mui/x-charts/PieChart';
-import axios from 'axios';
+import dashboardApi from '../services/dashboardApi';
 
 const DashboardPage = () => {
   const [summary, setSummary] = useState({ total: 0, male: 0, female: 0 });
 
   useEffect(() => {
     const fetchSummary = async () => {
-      const token = localStorage.getItem('token'); // adjust if using context
       try {
-        const res = await axios.get('http://localhost:8082/api/dashboard/summary', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const res = await dashboardApi.get('/dashboard/summary');
+        const data = res.data;
+        setSummary({
+          total: data.totalRecords,
+          male: data.maleCount,
+          female: data.femaleCount,
         });
-        setSummary(res.data);
       } catch (err) {
         console.error('Error fetching dashboard summary:', err);
       }
@@ -36,54 +36,58 @@ const DashboardPage = () => {
   ];
 
   return (
-    <Box p={4}>
-      <Typography variant="h4" mb={3}>📊 Dashboard Summary</Typography>
+    <Box sx={{ p: 4, minHeight: '100vh', background: 'linear-gradient(to bottom right, #667eea, #764ba2)' }}>
+      <Typography variant="h3" sx={{ mb: 4, color: '#fff', fontWeight: 'bold' }}>
+        📊 Dashboard Summary
+      </Typography>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6">Total Records</Typography>
-              <Typography variant="h4">{summary.total}</Typography>
-            </CardContent>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {[['Total Records', summary.total], ['Male Records', summary.male], ['Female Records', summary.female]].map(([label, value]) => (
+          <Grid item xs={12} sm={4} key={label}>
+            <Card sx={{ boxShadow: 3, borderRadius: 2 }}>
+              <CardContent>
+                <Typography variant="subtitle1" color="text.secondary">
+                  {label}
+                </Typography>
+                <Typography variant="h4" fontWeight="bold">
+                  {value}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      <Grid container spacing={4}>
+        <Grid item xs={12} md={6}>
+          <Card sx={{ p: 2, borderRadius: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Bar Chart
+            </Typography>
+            <BarChart
+              xAxis={[{ scaleType: 'band', data: barData.map((item) => item.label) }]}
+              series={[{ data: barData.map((item) => item.value) }]}
+              width={400}
+              height={300}
+              colors={['#4f46e5']}
+            />
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6">Male Records</Typography>
-              <Typography variant="h4">{summary.male}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6">Female Records</Typography>
-              <Typography variant="h4">{summary.female}</Typography>
-            </CardContent>
+
+        <Grid item xs={12} md={6}>
+          <Card sx={{ p: 2, borderRadius: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Pie Chart
+            </Typography>
+            <PieChart
+              series={[{ data: pieData }]}
+              width={400}
+              height={300}
+              colors={['#4f46e5', '#facc15']}
+            />
           </Card>
         </Grid>
       </Grid>
-
-      <Box mt={5}>
-        <Typography variant="h6">Bar Chart</Typography>
-        <BarChart
-          xAxis={[{ scaleType: 'band', data: barData.map((item) => item.label) }]}
-          series={[{ data: barData.map((item) => item.value) }]}
-          width={500}
-          height={300}
-        />
-      </Box>
-
-      <Box mt={5}>
-        <Typography variant="h6">Pie Chart</Typography>
-        <PieChart
-          series={[{ data: pieData }]}
-          width={400}
-          height={300}
-        />
-      </Box>
     </Box>
   );
 };
