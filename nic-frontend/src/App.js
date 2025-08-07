@@ -1,24 +1,27 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'; // ✅ Add Navigate
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import NICUploadPage from './pages/NICUploadPage';
+import DashboardPage from './pages/DashboardPage';
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* 🔒 Protected Home Route */}
-        <Route
-          path="/"
+        {/* ✅ Redirect base path to login */}
+        <Route path="/" element={<Navigate to="/login" />} />
+
+        <Route path="/dashboard"
           element={
             <ProtectedRoute>
-              <h1>Home Page</h1> {/* You can replace with <HomePage /> if needed */}
+              <DashboardPage />
             </ProtectedRoute>
           }
         />
+
 
         {/* 🔒 Protected NIC Upload Route */}
         <Route
