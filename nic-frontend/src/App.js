@@ -1,29 +1,21 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'; // ✅ Add Navigate
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import NICUploadPage from './pages/NICUploadPage';
 import DashboardPage from './pages/DashboardPage';
+import PastRecordsPage from './pages/PastRecordsPage'; // ✅ imported
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* ✅ Redirect base path to login */}
+        {/* ✅ Default redirect */}
         <Route path="/" element={<Navigate to="/login" />} />
 
-        <Route path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-
-
-        {/* 🔒 Protected NIC Upload Route */}
+        {/* 🔒 Protected routes */}
         <Route
           path="/upload-nic"
           element={
@@ -32,7 +24,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/dashboard"
           element={
@@ -41,11 +32,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/past-records"
+          element={
+            <ProtectedRoute>
+              <PastRecordsPage />
+            </ProtectedRoute>
+          }
+        />
 
-
-
-
-        {/* 🔓 Public Routes */}
+        {/* 🔓 Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />

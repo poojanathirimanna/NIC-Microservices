@@ -16,12 +16,30 @@ const LoginPage = () => {
 
     try {
       const response = await api.post('/auth/login', formData);
-      if (response.data.token) localStorage.setItem('token', response.data.token);
+
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('username', response.data.username || formData.username); // ✅ this line
+      }
+
       navigate('/upload-nic', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     }
   };
+
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//
+//     try {
+//       const response = await api.post('/auth/login', formData);
+//       if (response.data.token) localStorage.setItem('token', response.data.token);
+//       navigate('/upload-nic', { replace: true });
+//     } catch (err) {
+//       setError(err.response?.data?.message || 'Login failed');
+//     }
+//   };
 
   const goToRegister = () => navigate('/register', { state: { fromLogin: true } });
   const goToResetPassword = () => navigate('/reset-password', { state: { fromLogin: true } });
@@ -57,70 +75,95 @@ const styles = {
      justifyContent: 'center',
      alignItems: 'center',
      fontFamily: 'Segoe UI, sans-serif',
+     background: 'transparent',
    },
-
-  card: {
-    width: 400,
-    padding: 35,
-    borderRadius: 16,
-    background: 'rgba(255, 255, 255, 0.1)',
-    boxShadow: '0 8px 32px 0 rgba(0,0,0,0.25)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255, 255, 255, 0.15)',
-    textAlign: 'center',
-    color: '#fff',
-  },
-  title: {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    marginBottom: 30,
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 40,
-  },
-  input: {
-    padding: 12,
-    fontSize: 16,
-    borderRadius: 8,
-    border: 'none',
-    outline: 'none',
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    color: '#F5F5F5 ',
-    transition: 'all 0.3s ease',
-  },
-  button: {
-    padding: 12,
-    fontSize: 16,
-    borderRadius: 8,
-    border: 'none',
-    backgroundColor: ' #00A5B8',
-    color: '#F5F5F5 ',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s ease',
-  },
-  links: {
-    marginTop: 15,
-    fontSize: 14,
-  },
-  linkButton: {
-    background: 'none',
-    color: '  #FFC069',
-    border: 'none',
-    cursor: 'pointer',
-    marginLeft: 6,
-    textDecoration: 'underline',
-  },
-  error: {
-    color: '#8B0000',
-    backgroundColor: 'rgba(255, 0, 0, 0.15)',
-    padding: '8px',
-    borderRadius: '6px',
-    fontSize: 14,
-  },
-};
+   card: {
+     width: '100%',
+     maxWidth: 400,
+     padding: '24px 16px',
+     borderRadius: 16,
+     background: 'rgba(255, 255, 255, 0.1)',
+     boxShadow: '0 8px 32px 0 rgba(0,0,0,0.25)',
+     backdropFilter: 'blur(12px)',
+     WebkitBackdropFilter: 'blur(12px)',
+     border: '1px solid rgba(255, 255, 255, 0.15)',
+     textAlign: 'center',
+     color: '#fff',
+     margin: '0 8px',
+   },
+   title: {
+     fontSize: '24px',
+     fontWeight: 'bold',
+     marginBottom: 24,
+   },
+   form: {
+     display: 'flex',
+     flexDirection: 'column',
+     gap: 24,
+   },
+   input: {
+     padding: 12,
+     fontSize: 16,
+     borderRadius: 8,
+     border: 'none',
+     outline: 'none',
+     backgroundColor: 'rgba(255,255,255,0.3)',
+     color: '#F5F5F5',
+     transition: 'all 0.3s ease',
+   },
+   button: {
+     padding: 12,
+     fontSize: 16,
+     borderRadius: 8,
+     border: 'none',
+     backgroundColor: '#00A5B8',
+     color: '#F5F5F5',
+     fontWeight: 'bold',
+     cursor: 'pointer',
+     transition: 'background-color 0.3s ease',
+   },
+   links: {
+     marginTop: 15,
+     fontSize: 14,
+     display: 'flex',
+     flexDirection: 'column',
+     alignItems: 'center',
+     gap: 4,
+   },
+   linkButton: {
+     background: 'none',
+     color: '#FFC069',
+     border: 'none',
+     cursor: 'pointer',
+     marginLeft: 6,
+     textDecoration: 'underline',
+     fontSize: 15,
+   },
+   error: {
+     color: '#8B0000',
+     backgroundColor: 'rgba(255, 0, 0, 0.15)',
+     padding: '8px',
+     borderRadius: '6px',
+     fontSize: 14,
+   },
+   // Responsive styles
+   '@media (max-width: 500px)': {
+     card: {
+       padding: '16px 4px',
+       maxWidth: '95vw',
+     },
+     title: {
+       fontSize: '20px',
+     },
+     input: {
+       fontSize: 15,
+       padding: 10,
+     },
+     button: {
+       fontSize: 15,
+       padding: 10,
+     },
+   },
+ };
 
 export default LoginPage;

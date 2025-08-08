@@ -3,9 +3,13 @@ html, body, #root {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  overflow-x: hidden;     /* Prevent unwanted horizontal scroll */
+  overflow-y: auto;       /* Allow vertical scroll when needed */
+  scroll-behavior: smooth; /* Optional: smooth scroll for anchor links etc. */
 }
 
 body {
+
   min-height: 100vh;
   background: linear-gradient(135deg, #3E54AC, #9F86C0);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

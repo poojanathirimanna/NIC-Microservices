@@ -107,12 +107,13 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    background: 'transparent', // body handles gradient
+    background: 'transparent',
     fontFamily: 'Segoe UI, sans-serif',
   },
   card: {
-    width: 400,
-    padding: 35,
+    width: '100%',
+    maxWidth: 400,
+    padding: '35px 16px',
     borderRadius: 16,
     background: 'rgba(255, 255, 255, 0.1)',
     boxShadow: '0 8px 32px 0 rgba(0,0,0,0.25)',
@@ -121,6 +122,7 @@ const styles = {
     border: '1px solid rgba(255, 255, 255, 0.15)',
     textAlign: 'center',
     color: '#F5F5F5',
+    margin: '0 8px',
   },
   title: {
     fontSize: '26px',
@@ -153,8 +155,6 @@ const styles = {
     cursor: 'pointer',
     transition: 'background-color 0.3s ease',
     justifyContent: 'center',
-
-
   },
   error: {
     color: '#D32F2F',
@@ -163,6 +163,23 @@ const styles = {
     borderRadius: '6px',
     fontSize: 14,
   },
+  // Responsive styles
+  '@media (max-width: 500px)': {
+    card: {
+      padding: '16px 4px',
+      maxWidth: '95vw',
+    },
+    title: {
+      fontSize: '20px',
+    },
+    input: {
+      fontSize: 15,
+      padding: 10,
+    },
+    button: {
+      fontSize: 15,
+      padding: 10,
+    },
+  },
 };
-
 export default RegisterPage;
