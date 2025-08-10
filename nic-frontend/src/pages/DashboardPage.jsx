@@ -3,7 +3,7 @@ import { Box, Typography, Card, CardContent, Grid } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import dashboardApi from '../services/dashboardApi';
-import Navbar from '../components/Navbar'; // ✅ Navbar added
+import Navbar from '../components/Navbar'; // Navbar added
 
 const DashboardPage = () => {
   const [summary, setSummary] = useState({ total: 0, male: 0, female: 0 });
@@ -41,7 +41,7 @@ const DashboardPage = () => {
       <Navbar />
       <Box
         sx={{
-          pt: 10, // ✅ Push content below the sticky navbar
+          pt: 10, // Push content below the navbar
           px: 4,
           pb: 4,
           minHeight: '100vh',

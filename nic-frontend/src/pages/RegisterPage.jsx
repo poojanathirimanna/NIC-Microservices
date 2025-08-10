@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const RegisterPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,10 +27,27 @@ const RegisterPage = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError(''); // clear any previous error while typing
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ✅ Client-side validations (no layout/style changes)
+    if (!formData.username.trim() || formData.username.trim().length < 3) {
+      setError('Username must be at least 3 characters');
+      return;
+    }
+
+    if (!EMAIL_REGEX.test(formData.email.trim())) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (!formData.password || formData.password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
@@ -37,8 +56,8 @@ const RegisterPage = () => {
 
     try {
       const response = await api.post('/users/register', {
-        username: formData.username,
-        email: formData.email,
+        username: formData.username.trim(),
+        email: formData.email.trim(),
         password: formData.password,
       });
 
@@ -54,7 +73,7 @@ const RegisterPage = () => {
     <div style={styles.page}>
       <div style={styles.card}>
         <h2 style={styles.title}>👤 Create an Account</h2>
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form onSubmit={handleSubmit} style={styles.form} noValidate>
           <input
             type="text"
             name="username"
@@ -62,6 +81,7 @@ const RegisterPage = () => {
             value={formData.username}
             onChange={handleChange}
             required
+            minLength={3}                 // HTML5 guard
             style={styles.input}
           />
           <input
@@ -71,6 +91,8 @@ const RegisterPage = () => {
             value={formData.email}
             onChange={handleChange}
             required
+            pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"   // HTML5 email format
+            title="Please enter a valid email address"
             style={styles.input}
           />
           <input
@@ -80,6 +102,7 @@ const RegisterPage = () => {
             value={formData.password}
             onChange={handleChange}
             required
+            minLength={8}                 // HTML5 guard
             style={styles.input}
           />
           <input
@@ -163,7 +186,6 @@ const styles = {
     borderRadius: '6px',
     fontSize: 14,
   },
-  // Responsive styles
   '@media (max-width: 500px)': {
     card: {
       padding: '16px 4px',
@@ -182,4 +204,5 @@ const styles = {
     },
   },
 };
+
 export default RegisterPage;
