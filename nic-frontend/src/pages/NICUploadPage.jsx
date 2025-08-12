@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { uploadNICFiles } from '../services/nicService';
 import Navbar from '../components/Navbar';
 
@@ -7,6 +7,7 @@ const NICUploadPage = () => {
   const [results, setResults] = useState([]);
   const [responseInfo, setResponseInfo] = useState(null);
   const [error, setError] = useState('');
+  const fileInputRef = useRef(null);
 
   // Helper: check exactly 4 CSV files selected
   const isValidSelection = useMemo(() => {
@@ -16,7 +17,7 @@ const NICUploadPage = () => {
       (f) =>
         f.name.toLowerCase().endsWith('.csv') ||
         f.type === 'text/csv' ||
-        f.type === 'application/vnd.ms-excel' // some browsers mark CSV like this
+        f.type === 'application/vnd.ms-excel'
     );
   }, [files]);
 
@@ -65,6 +66,14 @@ const NICUploadPage = () => {
     }
   };
 
+  const handleClear = () => {
+    setFiles([]);
+    setResults([]);
+    setResponseInfo(null);
+    setError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   return (
     <>
       <Navbar />
@@ -73,6 +82,7 @@ const NICUploadPage = () => {
           <h1 style={styles.title}>📂 NIC CSV Upload</h1>
 
           <input
+            ref={fileInputRef}
             type="file"
             multiple
             accept=".csv,text/csv"
@@ -101,17 +111,29 @@ const NICUploadPage = () => {
             </div>
           )}
 
-          <button
-            onClick={handleUpload}
-            style={{
-              ...styles.button,
-              opacity: isValidSelection ? 1 : 0.6,
-              cursor: isValidSelection ? 'pointer' : 'not-allowed',
-            }}
-            disabled={!isValidSelection}
-          >
-            ✅ Upload and Validate
-          </button>
+          <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+            <button
+              onClick={handleUpload}
+              style={{
+                ...styles.button,
+                opacity: isValidSelection ? 1 : 0.6,
+                cursor: isValidSelection ? 'pointer' : 'not-allowed',
+              }}
+              disabled={!isValidSelection}
+            >
+              ✅ Upload and Validate
+            </button>
+
+            <button
+              onClick={handleClear}
+              style={{
+                ...styles.button,
+                background: 'linear-gradient(to right, #ff6a6a, #ff0000)',
+              }}
+            >
+              🗑 Clear Files
+            </button>
+          </div>
 
           {error && <p style={styles.error}>{error}</p>}
 
@@ -230,7 +252,7 @@ const styles = {
     borderRadius: '8px',
     fontSize: '16px',
     transition: '0.3s ease',
-    marginBottom: '20px',
+    marginBottom: '0px',
   },
   error: {
     color: '#ff4d4f',
@@ -275,7 +297,7 @@ const styles = {
     color: '#fff',
     textAlign: 'center',
     fontWeight: 'bold',
-    border: '1px solid #ddd',
+    border: '1px solid #ddd', // <- fixed
   },
   td: {
     padding: '12px',
