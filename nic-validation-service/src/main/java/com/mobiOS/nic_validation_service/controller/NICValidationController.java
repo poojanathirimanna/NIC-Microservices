@@ -22,7 +22,7 @@ public class NICValidationController {
     @PostMapping("/upload")
     public ResponseEntity<Map<String, Object>> uploadFiles(
             @RequestParam("files") MultipartFile[] files,
-            @RequestHeader("Authorization") String authHeader // ✅ Extract token
+            @RequestHeader("Authorization") String authHeader // Extract token
     ) {
         Map<String, Object> response = new LinkedHashMap<>();
 
@@ -33,7 +33,7 @@ public class NICValidationController {
         }
 
         String token = authHeader.replace("Bearer ", "");
-        String username = jwtUtil.getUsernameFromToken(token); // ✅ You need JwtUtil for this
+        String username = jwtUtil.getUsernameFromToken(token); // uses JwtUtil to extract username
 
         List<NICRecord> allInsertedRecords = new ArrayList<>();
         List<String> allSkippedNICs = new ArrayList<>();
@@ -41,7 +41,7 @@ public class NICValidationController {
 
         for (MultipartFile file : files) {
             try {
-                Map<String, Object> result = nicService.processCSV(file, username); // ✅ Pass username
+                Map<String, Object> result = nicService.processCSV(file, username); // Pass username
                 allInsertedRecords.addAll((List<NICRecord>) result.get("inserted"));
                 allSkippedNICs.addAll((List<String>) result.get("skipped"));
             } catch (Exception e) {

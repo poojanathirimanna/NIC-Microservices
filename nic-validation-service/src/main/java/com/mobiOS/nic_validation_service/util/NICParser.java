@@ -5,6 +5,10 @@ import java.time.Period;
 
 public class NICParser {
 
+    // Age bounds
+    private static final int MIN_AGE = 16;   // youngest allowed
+    private static final int MAX_AGE = 110;  // oldest allowed
+
     public static LocalDate extractDOB(String nic) {
         if (nic == null) {
             throw new IllegalArgumentException("NIC is null");
@@ -28,7 +32,8 @@ public class NICParser {
         }
 
         // Basic year and day validations
-        if (year < 1900 || year > LocalDate.now().getYear()) {
+        int currentYear = LocalDate.now().getYear();
+        if (year < (currentYear - MAX_AGE) || year > currentYear) {
             throw new IllegalArgumentException("Invalid year extracted from NIC: " + year);
         }
 
@@ -40,7 +45,19 @@ public class NICParser {
             dayOfYear -= 500; // Adjust for female
         }
 
-        return LocalDate.ofYearDay(year, dayOfYear);
+        LocalDate dob = LocalDate.ofYearDay(year, dayOfYear);
+
+        // Age validation
+        if (dob.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("DOB is in the future: " + dob);
+        }
+
+        int age = calculateAge(dob);
+        if (age < MIN_AGE || age > MAX_AGE) {
+            throw new IllegalArgumentException("Unrealistic age for NIC: " + age);
+        }
+
+        return dob;
     }
 
     public static String extractGender(String nic) {
@@ -64,7 +81,7 @@ public class NICParser {
     public static int calculateAge(LocalDate dob) {
         LocalDate now = LocalDate.now();
         if (dob.isAfter(now)) {
-            return 0;
+            throw new IllegalArgumentException("DOB is in the future: " + dob);
         }
         return Period.between(dob, now).getYears();
     }

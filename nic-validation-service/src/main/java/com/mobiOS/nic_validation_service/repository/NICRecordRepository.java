@@ -6,10 +6,10 @@ import java.util.List;
 
 public interface NICRecordRepository extends JpaRepository<NICRecord, Long> {
     boolean existsByNicNumber(String nicNumber);
-    // ✅ Get total records by username
+    // Get total records by username
     long countByUsername(String username);
 
-    // ✅ Get male/female count by username and gender
+    // Get male/female count by username and gender
     long countByUsernameAndGender(String username, String gender);
 
     //  for past records page:
