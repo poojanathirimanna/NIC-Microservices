@@ -81,7 +81,7 @@ const PastRecordsPage = () => {
     doc.save('records.pdf');
   };
 
-  // ✅ Slice only the visible records for current page
+  //  Slice only the visible records for current page
   const paginatedRecords = records.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (

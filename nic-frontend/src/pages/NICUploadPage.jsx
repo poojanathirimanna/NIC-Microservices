@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { uploadNICFiles } from '../services/nicService';
 import Navbar from '../components/Navbar';
 
@@ -8,12 +8,40 @@ const NICUploadPage = () => {
   const [responseInfo, setResponseInfo] = useState(null);
   const [error, setError] = useState('');
 
+  // Helper: check exactly 4 CSV files selected
+  const isValidSelection = useMemo(() => {
+    if (files.length !== 4) return false;
+    // Accept both ".csv" and "text/csv" types (browsers differ)
+    return files.every(
+      (f) =>
+        f.name.toLowerCase().endsWith('.csv') ||
+        f.type === 'text/csv' ||
+        f.type === 'application/vnd.ms-excel' // some browsers mark CSV like this
+    );
+  }, [files]);
+
   const handleFileChange = (e) => {
-    setFiles([...e.target.files]);
+    const picked = Array.from(e.target.files || []);
+    const onlyCsv = picked.filter(
+      (f) =>
+        f.name.toLowerCase().endsWith('.csv') ||
+        f.type === 'text/csv' ||
+        f.type === 'application/vnd.ms-excel'
+    );
+
+    setFiles(onlyCsv);
+
+    if (picked.length !== 4) {
+      setError('⚠️ Please select exactly 4 files.');
+    } else if (onlyCsv.length !== 4) {
+      setError('⚠️ All 4 files must be CSV (.csv).');
+    } else {
+      setError('');
+    }
   };
 
   const handleUpload = async () => {
-    if (files.length !== 4) {
+    if (!isValidSelection) {
       setError('⚠️ Please upload exactly 4 CSV files.');
       return;
     }
@@ -21,12 +49,19 @@ const NICUploadPage = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await uploadNICFiles(files, token);
-      setResults(response.records || []);
-      setResponseInfo(response);
+
+      setResults(response?.records || []);
+      setResponseInfo({
+        message: response?.message || 'Upload completed.',
+        filesProcessed: response?.filesProcessed ?? files.length,
+        inserted: response?.inserted ?? 0,
+        skipped: response?.skipped ?? 0,
+        skippedNICs: response?.skippedNICs || [],
+      });
       setError('');
     } catch (err) {
-      setError('❌ Upload failed. Please try again.');
       console.error(err);
+      setError('❌ Upload failed. Please try again.');
     }
   };
 
@@ -40,12 +75,41 @@ const NICUploadPage = () => {
           <input
             type="file"
             multiple
-            accept=".csv"
+            accept=".csv,text/csv"
             onChange={handleFileChange}
             style={styles.input}
           />
 
-          <button onClick={handleUpload} style={styles.button}>
+          {/* Selected files list */}
+          {files.length > 0 && (
+            <div style={styles.fileList}>
+              <p style={{ margin: 0 }}>
+                <strong>📂 Files Selected ({files.length}/4):</strong>
+              </p>
+              <ul style={styles.fileUl}>
+                {files.map((file, idx) => (
+                  <li key={idx} style={styles.fileItem}>
+                    {file.name}
+                  </li>
+                ))}
+              </ul>
+              {!isValidSelection && (
+                <p style={{ ...styles.error, marginTop: 8 }}>
+                  ⚠️ Need exactly 4 CSV files.
+                </p>
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={handleUpload}
+            style={{
+              ...styles.button,
+              opacity: isValidSelection ? 1 : 0.6,
+              cursor: isValidSelection ? 'pointer' : 'not-allowed',
+            }}
+            disabled={!isValidSelection}
+          >
             ✅ Upload and Validate
           </button>
 
@@ -53,11 +117,19 @@ const NICUploadPage = () => {
 
           {responseInfo && (
             <div style={styles.summary}>
-              <p style={{ color: '#4CAF50', fontWeight: 'bold' }}>{responseInfo.message}</p>
-              <p><strong>Files Processed:</strong> {responseInfo.filesProcessed}</p>
-              <p><strong>Inserted:</strong> {responseInfo.inserted}</p>
-              <p><strong>Skipped:</strong> {responseInfo.skipped}</p>
-              {responseInfo.skippedNICs.length > 0 && (
+              <p style={{ color: '#4CAF50', fontWeight: 'bold', marginTop: 0 }}>
+                {responseInfo.message}
+              </p>
+              <p style={{ margin: '6px 0' }}>
+                <strong>Files Processed:</strong> {responseInfo.filesProcessed}
+              </p>
+              <p style={{ margin: '6px 0' }}>
+                <strong>Inserted:</strong> {responseInfo.inserted}
+              </p>
+              <p style={{ margin: '6px 0' }}>
+                <strong>Skipped:</strong> {responseInfo.skipped}
+              </p>
+              {responseInfo.skippedNICs?.length > 0 && (
                 <p style={styles.skipped}>
                   <strong>Skipped NICs:</strong> {responseInfo.skippedNICs.join(', ')}
                 </p>
@@ -124,13 +196,30 @@ const styles = {
     marginBottom: '30px',
   },
   input: {
-    marginBottom: '20px',
+    marginBottom: '12px',
     padding: '12px',
     width: '100%',
     fontSize: '16px',
     borderRadius: '8px',
     border: '1px solid #ccc',
     backgroundColor: '#f9f9f9',
+    color: '#222',
+  },
+  fileList: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    padding: '10px 12px',
+    borderRadius: '8px',
+    marginBottom: '15px',
+    fontSize: '14px',
+  },
+  fileUl: {
+    margin: '6px 0 0 18px',
+  },
+  fileItem: {
+    color: '#fff',
+    listStyleType: 'disc',
+    margin: '4px 0',
+    wordBreak: 'break-all',
   },
   button: {
     background: 'linear-gradient(to right, #00c6ff, #0072ff)',
@@ -140,7 +229,6 @@ const styles = {
     border: 'none',
     borderRadius: '8px',
     fontSize: '16px',
-    cursor: 'pointer',
     transition: '0.3s ease',
     marginBottom: '20px',
   },
@@ -160,7 +248,7 @@ const styles = {
     fontSize: '15px',
   },
   skipped: {
-    color: '#ff5252',
+    color: '#ffb4b4',
     fontWeight: 'bold',
     marginTop: '10px',
   },
