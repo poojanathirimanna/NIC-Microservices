@@ -47,16 +47,8 @@ const LoginPage = () => {
 
   return (
     <div style={styles.container}>
-      {/* Background Elements */}
-      <div style={styles.backgroundShapes}>
-        <div style={styles.shape1} className="floating-shape"></div>
-        <div style={styles.shape2} className="floating-shape-delayed"></div>
-        <div style={styles.shape3} className="floating-shape"></div>
-        <div style={styles.shape4} className="floating-shape"></div>
-      </div>
-
-      {/* Grid Pattern Background */}
-      <div style={styles.gridPattern}></div>
+      {/* Background Pattern */}
+      <div style={styles.backgroundPattern}></div>
 
       <div style={styles.loginWrapper}>
         {/* Brand Section */}
@@ -182,7 +174,7 @@ const LoginPage = () => {
         {/* Footer */}
         <div style={styles.footer} className={mounted ? 'fade-in-delayed' : ''}>
           <p style={styles.footerText}>
-            © 2025 NIC Portal. Enterprise-grade security and reliability.
+            © 2025 NIC Portal.
           </p>
         </div>
       </div>
@@ -379,7 +371,13 @@ const LoginPage = () => {
 const styles = {
   container: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 25%, #3730a3 50%, #312e81 75%, #1e1b4b 100%)',
+    background: `
+      linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.80) 25%, rgba(51, 65, 85, 0.75) 50%, rgba(71, 85, 105, 0.70) 75%, rgba(100, 116, 139, 0.65) 100%),
+      url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')
+    `,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -388,67 +386,20 @@ const styles = {
     position: 'relative',
     overflow: 'hidden',
   },
-  backgroundShapes: {
+  backgroundPattern: {
     position: 'absolute',
     top: 0,
     left: 0,
     width: '100%',
     height: '100%',
-    pointerEvents: 'none',
-    overflow: 'hidden',
-  },
-  shape1: {
-    position: 'absolute',
-    top: '10%',
-    left: '10%',
-    width: '100px',
-    height: '100px',
-    background: 'rgba(59, 130, 246, 0.1)',
-    borderRadius: '50%',
-    backdropFilter: 'blur(10px)',
-  },
-  shape2: {
-    position: 'absolute',
-    top: '60%',
-    right: '15%',
-    width: '150px',
-    height: '150px',
-    background: 'rgba(79, 70, 229, 0.08)',
-    borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-    backdropFilter: 'blur(10px)',
-  },
-  shape3: {
-    position: 'absolute',
-    bottom: '10%',
-    left: '20%',
-    width: '80px',
-    height: '80px',
-    background: 'rgba(99, 102, 241, 0.12)',
-    borderRadius: '50%',
-    backdropFilter: 'blur(10px)',
-  },
-  shape4: {
-    position: 'absolute',
-    top: '30%',
-    right: '60%',
-    width: '120px',
-    height: '120px',
-    background: 'rgba(67, 56, 202, 0.09)',
-    borderRadius: '50%',
-    backdropFilter: 'blur(10px)',
-  },
-  gridPattern: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundImage: `
+    background: `
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
       linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+      radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.02) 2px, transparent 2px)
     `,
-    backgroundSize: '60px 60px',
+    backgroundSize: '60px 60px, 60px 60px, 100px 100px',
     pointerEvents: 'none',
+    opacity: 0.6,
   },
   loginWrapper: {
     width: '100%',
@@ -469,14 +420,14 @@ const styles = {
   logo: {
     width: '80px',
     height: '80px',
-    background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%)',
+    background: 'linear-gradient(135deg, rgba(148, 163, 184, 0.2) 0%, rgba(203, 213, 225, 0.15) 100%)',
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     backdropFilter: 'blur(20px)',
-    border: '2px solid rgba(147, 197, 253, 0.3)',
-    boxShadow: '0 8px 32px rgba(59, 130, 246, 0.2)',
+    border: '2px solid rgba(226, 232, 240, 0.2)',
+    boxShadow: '0 8px 32px rgba(15, 23, 42, 0.3)',
   },
   logoIcon: {
     fontSize: '32px',
@@ -486,22 +437,23 @@ const styles = {
     fontWeight: '700',
     margin: '0 0 8px 0',
     letterSpacing: '-0.5px',
-    textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+    color: '#f8fafc',
   },
   brandSubtitle: {
     fontSize: '16px',
     opacity: 0.9,
     margin: 0,
     fontWeight: '400',
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: 'rgba(226, 232, 240, 0.9)',
   },
   loginCard: {
     background: 'rgba(255, 255, 255, 0.98)',
     borderRadius: '24px',
     padding: '40px',
-    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+    boxShadow: '0 25px 50px rgba(15, 23, 42, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1)',
     backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(226, 232, 240, 0.8)',
+    border: '1px solid rgba(226, 232, 240, 0.3)',
   },
   cardHeader: {
     textAlign: 'center',
@@ -510,13 +462,13 @@ const styles = {
   welcomeTitle: {
     fontSize: '28px',
     fontWeight: '700',
-    color: '#1e293b',
+    color: '#0f172a',
     margin: '0 0 8px 0',
     letterSpacing: '-0.5px',
   },
   welcomeSubtitle: {
     fontSize: '16px',
-    color: '#64748b',
+    color: '#475569',
     margin: 0,
     fontWeight: '400',
   },
@@ -537,6 +489,7 @@ const styles = {
     fontSize: '18px',
     color: '#64748b',
     zIndex: 2,
+    transition: 'color 0.3s ease',
   },
   input: {
     width: '100%',
@@ -545,7 +498,7 @@ const styles = {
     border: '2px solid #e2e8f0',
     borderRadius: '12px',
     background: '#f8fafc',
-    color: '#1e293b',
+    color: '#0f172a',
     outline: 'none',
     fontWeight: '500',
     boxSizing: 'border-box',
@@ -566,6 +519,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     color: '#64748b',
+    transition: 'all 0.2s ease',
   },
   errorCard: {
     background: '#fef2f2',
@@ -586,7 +540,7 @@ const styles = {
     margin: 0,
   },
   loginButton: {
-    background: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)',
+    background: 'linear-gradient(135deg, #334155 0%, #475569 50%, #64748b 100%)',
     color: 'white',
     border: 'none',
     borderRadius: '12px',
@@ -598,7 +552,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: '8px',
-    boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
+    boxShadow: '0 4px 14px rgba(51, 65, 85, 0.4)',
     outline: 'none',
     transition: 'all 0.3s ease',
   },
@@ -646,13 +600,14 @@ const styles = {
   actionButton: {
     background: 'none',
     border: 'none',
-    color: '#3b82f6',
+    color: '#334155',
     fontSize: '14px',
     fontWeight: '600',
     cursor: 'pointer',
     textDecoration: 'underline',
     padding: '4px 8px',
     borderRadius: '6px',
+    transition: 'all 0.3s ease',
   },
   forgotButton: {
     background: 'none',
@@ -663,16 +618,17 @@ const styles = {
     textDecoration: 'underline',
     padding: '4px 8px',
     borderRadius: '6px',
+    transition: 'all 0.3s ease',
   },
   footer: {
     textAlign: 'center',
     marginTop: '40px',
-    color: 'rgba(255, 255, 255, 0.75)',
+    color: 'rgba(226, 232, 240, 0.8)',
   },
   footerText: {
     fontSize: '12px',
     margin: 0,
-    opacity: 0.8,
+    opacity: 0.9,
   },
 };
 
