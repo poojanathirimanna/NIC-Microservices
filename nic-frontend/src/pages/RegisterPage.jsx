@@ -7,6 +7,10 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RegisterPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     username: '',
@@ -18,6 +22,7 @@ const RegisterPage = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    setMounted(true);
     if (!location.state?.fromLogin) {
       navigate('/login');
     }
@@ -32,25 +37,31 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
-    // ✅ Client-side validations (no layout/style changes)
+    // Client-side validations
     if (!formData.username.trim() || formData.username.trim().length < 3) {
       setError('Username must be at least 3 characters');
+      setIsLoading(false);
       return;
     }
 
     if (!EMAIL_REGEX.test(formData.email.trim())) {
       setError('Please enter a valid email address');
+      setIsLoading(false);
       return;
     }
 
     if (!formData.password || formData.password.length < 8) {
       setError('Password must be at least 8 characters');
+      setIsLoading(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
 
@@ -62,146 +73,659 @@ const RegisterPage = () => {
       });
 
       console.log('Registration successful:', response.data);
-      navigate('/login');
+
+      // Add a small delay for better UX
+      setTimeout(() => {
+        navigate('/login');
+      }, 500);
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || 'Registration failed');
+      setIsLoading(false);
     }
   };
 
+  const goToLogin = () => navigate('/login');
+
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>👤 Create an Account</h2>
-        <form onSubmit={handleSubmit} style={styles.form} noValidate>
-          <input
-            type="text"
-            name="username"
-            placeholder="Username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-            minLength={3}                 // HTML5 guard
-            style={styles.input}
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"   // HTML5 email format
-            title="Please enter a valid email address"
-            style={styles.input}
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            minLength={8}                 // HTML5 guard
-            style={styles.input}
-          />
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm Password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-          {error && <p style={styles.error}>{error}</p>}
-          <button type="submit" style={styles.button}>🚀 REGISTER</button>
-        </form>
+    <div style={styles.container}>
+      {/* Background Elements */}
+      <div style={styles.backgroundShapes}>
+        <div style={styles.shape1} className="floating-shape"></div>
+        <div style={styles.shape2} className="floating-shape-delayed"></div>
+        <div style={styles.shape3} className="floating-shape"></div>
+        <div style={styles.shape4} className="floating-shape"></div>
       </div>
+
+      {/* Grid Pattern Background */}
+      <div style={styles.gridPattern}></div>
+
+      <div style={styles.registerWrapper}>
+        {/* Brand Section */}
+        <div style={styles.brandSection} className={mounted ? 'slide-down' : ''}>
+          <div style={styles.logoContainer}>
+            <div style={styles.logo} className="pulse-logo">
+              <span style={styles.logoIcon}>👤</span>
+            </div>
+          </div>
+          <h1 style={styles.brandTitle}>Join NIC Portal</h1>
+          <p style={styles.brandSubtitle}>Create your secure enterprise account</p>
+        </div>
+
+        {/* Register Card */}
+        <div style={styles.registerCard} className={mounted ? 'fade-in-up' : ''}>
+          <div style={styles.cardHeader}>
+            <h2 style={styles.welcomeTitle}>Create Account</h2>
+            <p style={styles.welcomeSubtitle}>Fill in your details to get started</p>
+          </div>
+
+          <form onSubmit={handleSubmit} style={styles.form} noValidate>
+            {/* Username Field */}
+            <div style={styles.inputGroup} className="input-focus-group">
+              <div style={styles.inputIcon}>
+                <span>👤</span>
+              </div>
+              <input
+                type="text"
+                name="username"
+                placeholder="Username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+                minLength={3}
+                style={styles.input}
+                className="modern-input"
+              />
+            </div>
+
+            {/* Email Field */}
+            <div style={styles.inputGroup} className="input-focus-group">
+              <div style={styles.inputIcon}>
+                <span>✉️</span>
+              </div>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                title="Please enter a valid email address"
+                style={styles.input}
+                className="modern-input"
+              />
+            </div>
+
+            {/* Password Field */}
+            <div style={styles.inputGroup} className="input-focus-group">
+              <div style={styles.inputIcon}>
+                <span>🔒</span>
+              </div>
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength={8}
+                style={styles.input}
+                className="modern-input"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={styles.passwordToggle}
+                className="password-toggle-btn"
+              >
+                <span>{showPassword ? '👁️' : '👁️‍🗨️'}</span>
+              </button>
+            </div>
+
+            {/* Confirm Password Field */}
+            <div style={styles.inputGroup} className="input-focus-group">
+              <div style={styles.inputIcon}>
+                <span>🔐</span>
+              </div>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                style={styles.input}
+                className="modern-input"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={styles.passwordToggle}
+                className="password-toggle-btn"
+              >
+                <span>{showConfirmPassword ? '👁️' : '👁️‍🗨️'}</span>
+              </button>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div style={styles.errorCard} className="shake-error">
+                <span style={styles.errorIcon}>⚠️</span>
+                <span style={styles.errorText}>{error}</span>
+              </div>
+            )}
+
+            {/* Register Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              style={{
+                ...styles.registerButton,
+                ...(isLoading ? styles.loadingButton : {})
+              }}
+              className="register-btn-hover"
+            >
+              {isLoading ? (
+                <>
+                  <span style={styles.spinner} className="spin">⟳</span>
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  <span style={styles.buttonIcon}>🚀</span>
+                  Create Account
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div style={styles.divider}>
+            <span style={styles.dividerText}>or</span>
+          </div>
+
+          {/* Action Links */}
+          <div style={styles.actionLinks}>
+            <div style={styles.linkGroup}>
+              <span style={styles.linkText}>Already have an account?</span>
+              <button
+                onClick={goToLogin}
+                style={styles.actionButton}
+                className="action-btn-hover"
+              >
+                Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={styles.footer} className={mounted ? 'fade-in-delayed' : ''}>
+          <p style={styles.footerText}>
+            © 2025 NIC Portal. Secure enterprise registration process.
+          </p>
+        </div>
+      </div>
+
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-20px) rotate(5deg);
+          }
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
+        }
+
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+          20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        .fade-in-up {
+          animation: fadeInUp 0.8s ease-out;
+        }
+
+        .slide-down {
+          animation: slideDown 0.6s ease-out;
+        }
+
+        .fade-in-delayed {
+          animation: fadeIn 1s ease-out 0.5s both;
+        }
+
+        .floating-shape {
+          animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-shape-delayed {
+          animation: float 6s ease-in-out infinite 2s;
+        }
+
+        .pulse-logo {
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        .shake-error {
+          animation: shake 0.5s ease-in-out, fadeInUp 0.5s ease-out;
+        }
+
+        .spin {
+          animation: spin 1s linear infinite;
+        }
+
+        .modern-input {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modern-input:focus {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+          border-color: #3b82f6;
+        }
+
+        .input-focus-group:focus-within {
+          transform: translateY(-2px);
+        }
+
+        .register-btn-hover {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .register-btn-hover:hover:not(:disabled) {
+          transform: translateY(-3px);
+          box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
+        }
+
+        .register-btn-hover:active {
+          transform: translateY(-1px);
+        }
+
+        .action-btn-hover {
+          transition: all 0.3s ease;
+        }
+
+        .action-btn-hover:hover {
+          transform: translateY(-2px);
+          color: #3b82f6;
+        }
+
+        .password-toggle-btn {
+          transition: all 0.2s ease;
+        }
+
+        .password-toggle-btn:hover {
+          transform: scale(1.1);
+          background: rgba(100, 116, 139, 0.1);
+        }
+
+        /* Focus states for accessibility */
+        .modern-input:focus,
+        .register-btn-hover:focus,
+        .action-btn-hover:focus {
+          outline: 2px solid rgba(59, 130, 246, 0.5);
+          outline-offset: 2px;
+        }
+
+        /* Responsive animations */
+        @media (max-width: 768px) {
+          .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+          }
+
+          .floating-shape {
+            animation: none;
+          }
+        }
+
+        /* Reduce motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
 
 const styles = {
-  page: {
-    height: '100vh',
-    width: '100vw',
+  container: {
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 25%, #3730a3 50%, #312e81 75%, #1e1b4b 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px',
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    position: 'relative',
     overflow: 'hidden',
+  },
+  backgroundShapes: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    pointerEvents: 'none',
+    overflow: 'hidden',
+  },
+  shape1: {
+    position: 'absolute',
+    top: '10%',
+    left: '10%',
+    width: '100px',
+    height: '100px',
+    background: 'rgba(59, 130, 246, 0.1)',
+    borderRadius: '50%',
+    backdropFilter: 'blur(10px)',
+  },
+  shape2: {
+    position: 'absolute',
+    top: '60%',
+    right: '15%',
+    width: '150px',
+    height: '150px',
+    background: 'rgba(79, 70, 229, 0.08)',
+    borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
+    backdropFilter: 'blur(10px)',
+  },
+  shape3: {
+    position: 'absolute',
+    bottom: '10%',
+    left: '20%',
+    width: '80px',
+    height: '80px',
+    background: 'rgba(99, 102, 241, 0.12)',
+    borderRadius: '50%',
+    backdropFilter: 'blur(10px)',
+  },
+  shape4: {
+    position: 'absolute',
+    top: '30%',
+    right: '60%',
+    width: '120px',
+    height: '120px',
+    background: 'rgba(67, 56, 202, 0.09)',
+    borderRadius: '50%',
+    backdropFilter: 'blur(10px)',
+  },
+  gridPattern: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundImage: `
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+    `,
+    backgroundSize: '60px 60px',
+    pointerEvents: 'none',
+  },
+  registerWrapper: {
+    width: '100%',
+    maxWidth: '450px',
+    position: 'relative',
+    zIndex: 1,
+  },
+  brandSection: {
+    textAlign: 'center',
+    marginBottom: '40px',
+    color: 'white',
+  },
+  logoContainer: {
     display: 'flex',
     justifyContent: 'center',
+    marginBottom: '20px',
+  },
+  logo: {
+    width: '80px',
+    height: '80px',
+    background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%)',
+    borderRadius: '50%',
+    display: 'flex',
     alignItems: 'center',
-    background: 'transparent',
-    fontFamily: 'Segoe UI, sans-serif',
+    justifyContent: 'center',
+    backdropFilter: 'blur(20px)',
+    border: '2px solid rgba(147, 197, 253, 0.3)',
+    boxShadow: '0 8px 32px rgba(59, 130, 246, 0.2)',
   },
-  card: {
-    width: '100%',
-    maxWidth: 400,
-    padding: '35px 16px',
-    borderRadius: 16,
-    background: 'rgba(255, 255, 255, 0.1)',
-    boxShadow: '0 8px 32px 0 rgba(0,0,0,0.25)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255, 255, 255, 0.15)',
+  logoIcon: {
+    fontSize: '32px',
+  },
+  brandTitle: {
+    fontSize: '32px',
+    fontWeight: '700',
+    margin: '0 0 8px 0',
+    letterSpacing: '-0.5px',
+    textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+  },
+  brandSubtitle: {
+    fontSize: '16px',
+    opacity: 0.9,
+    margin: 0,
+    fontWeight: '400',
+    color: 'rgba(255, 255, 255, 0.85)',
+  },
+  registerCard: {
+    background: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: '24px',
+    padding: '40px',
+    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid rgba(226, 232, 240, 0.8)',
+  },
+  cardHeader: {
     textAlign: 'center',
-    color: '#F5F5F5',
-    margin: '0 8px',
+    marginBottom: '32px',
   },
-  title: {
-    fontSize: '26px',
-    fontWeight: 'bold',
-    marginBottom: 25,
+  welcomeTitle: {
+    fontSize: '28px',
+    fontWeight: '700',
+    color: '#1e293b',
+    margin: '0 0 8px 0',
+    letterSpacing: '-0.5px',
+  },
+  welcomeSubtitle: {
+    fontSize: '16px',
+    color: '#64748b',
+    margin: 0,
+    fontWeight: '400',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 15,
+    gap: '20px',
+  },
+  inputGroup: {
+    position: 'relative',
+    transition: 'transform 0.3s ease',
+  },
+  inputIcon: {
+    position: 'absolute',
+    left: '16px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    fontSize: '18px',
+    color: '#64748b',
+    zIndex: 2,
   },
   input: {
-    padding: 12,
-    fontSize: 16,
-    borderRadius: 8,
-    border: 'none',
+    width: '100%',
+    padding: '16px 20px 16px 50px',
+    fontSize: '16px',
+    border: '2px solid #e2e8f0',
+    borderRadius: '12px',
+    background: '#f8fafc',
+    color: '#1e293b',
     outline: 'none',
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    color: '#F5F5F5',
+    fontWeight: '500',
+    boxSizing: 'border-box',
     transition: 'all 0.3s ease',
   },
-  button: {
-    padding: 12,
-    fontSize: 16,
-    borderRadius: 8,
+  passwordToggle: {
+    position: 'absolute',
+    right: '16px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: 'none',
     border: 'none',
-    backgroundColor: '#00A5B8',
-    color: '#fff',
-    fontWeight: 'bold',
     cursor: 'pointer',
-    transition: 'background-color 0.3s ease',
+    fontSize: '16px',
+    padding: '8px',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#64748b',
+  },
+  errorCard: {
+    background: '#fef2f2',
+    border: '1px solid #fecaca',
+    borderRadius: '12px',
+    padding: '16px 20px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  errorIcon: {
+    fontSize: '20px',
+  },
+  errorText: {
+    color: '#dc2626',
+    fontSize: '14px',
+    fontWeight: '500',
+    margin: 0,
+  },
+  registerButton: {
+    background: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '12px',
+    padding: '16px 24px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
+    outline: 'none',
+    transition: 'all 0.3s ease',
+  },
+  loadingButton: {
+    opacity: 0.8,
+    cursor: 'not-allowed',
+  },
+  buttonIcon: {
+    fontSize: '16px',
+  },
+  spinner: {
+    fontSize: '16px',
+    marginRight: '8px',
+  },
+  divider: {
+    position: 'relative',
+    margin: '32px 0',
+    textAlign: 'center',
+  },
+  dividerText: {
+    background: 'rgba(255, 255, 255, 0.98)',
+    color: '#64748b',
+    padding: '0 16px',
+    fontSize: '14px',
+    position: 'relative',
+    zIndex: 1,
+  },
+  actionLinks: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+    alignItems: 'center',
+  },
+  linkGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexWrap: 'wrap',
     justifyContent: 'center',
   },
-  error: {
-    color: '#D32F2F',
-    backgroundColor: 'rgba(211, 47, 47, 0.15)',
-    padding: '8px',
-    borderRadius: '6px',
-    fontSize: 14,
+  linkText: {
+    fontSize: '14px',
+    color: '#64748b',
   },
-  '@media (max-width: 500px)': {
-    card: {
-      padding: '16px 4px',
-      maxWidth: '95vw',
-    },
-    title: {
-      fontSize: '20px',
-    },
-    input: {
-      fontSize: 15,
-      padding: 10,
-    },
-    button: {
-      fontSize: 15,
-      padding: 10,
-    },
+  actionButton: {
+    background: 'none',
+    border: 'none',
+    color: '#3b82f6',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    textDecoration: 'underline',
+    padding: '4px 8px',
+    borderRadius: '6px',
+  },
+  footer: {
+    textAlign: 'center',
+    marginTop: '40px',
+    color: 'rgba(255, 255, 255, 0.75)',
+  },
+  footerText: {
+    fontSize: '12px',
+    margin: 0,
+    opacity: 0.8,
   },
 };
 
