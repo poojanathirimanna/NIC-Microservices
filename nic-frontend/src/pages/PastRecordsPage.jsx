@@ -101,7 +101,7 @@ const PastRecordsPage = () => {
           📄 Past Records
         </Typography>
 
-        <Stack direction="row" spacing={2} mb={3}>
+        <Stack direction="row" spacing={5} mb={3}>
           <Button
             variant="contained"
             sx={{ backgroundColor: '#4caf50' }}

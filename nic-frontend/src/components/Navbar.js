@@ -1,16 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  Box,
-  IconButton,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  useMediaQuery,
+  AppBar, Toolbar, Typography, Button, Box, IconButton, Drawer, List,
+  ListItem, ListItemText, ListItemButton, ListItemIcon, useMediaQuery,
 } from '@mui/material';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
@@ -19,6 +10,8 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import HistoryIcon from '@mui/icons-material/History';
 
+const SCROLL_THRESHOLD = 8; // px movement before toggling
+
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,27 +19,37 @@ const Navbar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const username = localStorage.getItem('username') || 'User';
+
   const [showNavbar, setShowNavbar] = useState(true);
-  const [prevScrollPos, setPrevScrollPos] = useState(window.scrollY);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Hide-on-scroll logic
+  // Stable refs for scroll logic
+  const lastScrollYRef = useRef(typeof window !== 'undefined' ? window.scrollY : 0);
+  const rafRef = useRef(0);
+
   useEffect(() => {
-    let timeout;
     const handleScroll = () => {
-      const currentScroll = window.scrollY;
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        setShowNavbar(currentScroll < prevScrollPos || currentScroll < 10);
-        setPrevScrollPos(currentScroll);
-      }, 50);
+      const current = window.scrollY;
+      const delta = current - lastScrollYRef.current;
+
+      // Ignore tiny jitter
+      if (Math.abs(delta) < SCROLL_THRESHOLD) return;
+
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        const goingUp = delta < 0;
+        const nearTop = current < 10;
+        setShowNavbar(goingUp || nearTop);
+        lastScrollYRef.current = current;
+      });
     };
-    window.addEventListener('scroll', handleScroll);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      clearTimeout(timeout);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [prevScrollPos]);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -75,9 +78,7 @@ const Navbar = () => {
           fontSize: 15.5,
           letterSpacing: 0.5,
           transition: '0.3s',
-          '&:hover': {
-            color: '#90caf9',
-          },
+          '&:hover': { color: '#90caf9' },
         }}
       >
         <Box sx={{ mr: 1 }}>{item.icon}</Box>
@@ -91,15 +92,16 @@ const Navbar = () => {
         position="fixed"
         elevation={3}
         sx={{
-          top: showNavbar ? 0 : '-100px',
-          transition: 'top 0.4s ease-in-out',
+          transform: showNavbar ? 'translateY(0)' : 'translateY(-110%)',
+          transition: 'transform 0.35s ease',
+          willChange: 'transform',
+          pointerEvents: showNavbar ? 'auto' : 'none',
           background: 'linear-gradient(to right, #4f46e5, #6b21a8)',
           zIndex: 1200,
           py: 1,
         }}
       >
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', px: 3 }}>
-          {/* 👇 Left Side */}
           {isMobile ? (
             <>
               <IconButton edge="start" color="inherit" onClick={() => setDrawerOpen(true)}>
@@ -112,8 +114,6 @@ const Navbar = () => {
           ) : (
             <>
               <Box sx={{ display: 'flex', gap: 4 }}>{renderNavLinks()}</Box>
-
-              {/* 👇 Right Side */}
               <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                 <Typography sx={{ color: 'white', fontWeight: 500 }}>
                   Hi, {username.toLowerCase()} 👋
@@ -125,9 +125,7 @@ const Navbar = () => {
                     color: 'white',
                     borderColor: 'white',
                     fontWeight: 'bold',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255,255,255,0.1)',
-                    },
+                    '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
                   }}
                   onClick={handleLogout}
                 >
@@ -139,7 +137,9 @@ const Navbar = () => {
         </Toolbar>
       </AppBar>
 
-      {/* 👇 Mobile Drawer */}
+      {/* Spacer so page content sits below the fixed AppBar */}
+      <Toolbar />
+
       <Drawer
         anchor="left"
         open={drawerOpen}
@@ -149,51 +149,53 @@ const Navbar = () => {
             width: 260,
             background: 'linear-gradient(to right, #4f46e5, #6b21a8)',
             color: 'white',
-            paddingY: 2,
+            py: 2,
           },
         }}
       >
         <List sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          {navItems.map((item) => (
-            <ListItem
-              button
-              key={item.path}
+          {navItems.map((item) => {
+            const selected = location.pathname === item.path;
+            return (
+              <ListItem key={item.path} disablePadding>
+                <ListItemButton
+                  onClick={() => {
+                    navigate(item.path);
+                    setDrawerOpen(false);
+                  }}
+                  selected={selected}
+                  sx={{
+                    gap: 2,
+                    py: 1.2,
+                    px: 3,
+                    color: 'inherit',
+                    ...(selected && { backgroundColor: 'rgba(255, 255, 255, 0.15)' }),
+                    '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+                  }}
+                >
+                  <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.label} />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
+
+          <ListItem disablePadding>
+            <ListItemButton
               onClick={() => {
-                navigate(item.path);
+                handleLogout();
                 setDrawerOpen(false);
               }}
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-                paddingY: 1.2,
-                paddingX: 3,
-                backgroundColor:
-                  location.pathname === item.path ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                },
+                py: 1.2,
+                px: 3,
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
               }}
             >
-              {item.icon}
-              <ListItemText primary={item.label} />
-            </ListItem>
-          ))}
-          <ListItem
-            button
-            onClick={() => {
-              handleLogout();
-              setDrawerOpen(false);
-            }}
-            sx={{
-              paddingY: 1.2,
-              paddingX: 3,
-              '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.1)',
-              },
-            }}
-          >
-            <ListItemText primary="Sign Out" />
+              <ListItemText primary="Sign Out" />
+            </ListItemButton>
           </ListItem>
         </List>
       </Drawer>

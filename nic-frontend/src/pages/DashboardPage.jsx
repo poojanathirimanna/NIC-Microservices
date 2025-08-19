@@ -5,15 +5,15 @@ import { PieChart } from '@mui/x-charts/PieChart';
 import dashboardApi from '../services/dashboardApi';
 import Navbar from '../components/Navbar'; // Navbar added
 
-const DashboardPage = () => {
+const DashboardPage = () => {// Initialize state for summary data
   const [summary, setSummary] = useState({ total: 0, male: 0, female: 0 });
 
-  useEffect(() => {
+  useEffect(() => {// Fetch summary data from the API when the component mounts
     const fetchSummary = async () => {
       try {
-        const res = await dashboardApi.get('/dashboard/summary');
-        const data = res.data;
-        setSummary({
+        const res = await dashboardApi.get('/dashboard/summary');// fetch summary data from the API endpoint
+        const data = res.data; // Assuming the API returns an object
+        setSummary({ // Update state with the fetched data
           total: data.totalRecords,
           male: data.maleCount,
           female: data.femaleCount,

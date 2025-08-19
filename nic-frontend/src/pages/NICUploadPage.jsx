@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { uploadNICFiles } from '../services/nicService';
+import { uploadNICFiles } from '../services/nicService'; //for the response from the uploadNICFiles function
 import Navbar from '../components/Navbar';
 
 const NICUploadPage = () => {
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState([]); // Array to hold selected files
+  // State to hold results and response info
   const [results, setResults] = useState([]);
   const [responseInfo, setResponseInfo] = useState(null);
   const [error, setError] = useState('');
@@ -22,36 +23,36 @@ const NICUploadPage = () => {
   }, [files]);
 
   const handleFileChange = (e) => {
-    const picked = Array.from(e.target.files || []);
+    const picked = Array.from(e.target.files || []);// Convert FileList to Array
     const onlyCsv = picked.filter(
       (f) =>
         f.name.toLowerCase().endsWith('.csv') ||
         f.type === 'text/csv' ||
         f.type === 'application/vnd.ms-excel'
     );
-
     setFiles(onlyCsv);
 
-    if (picked.length !== 4) {
+    if (picked.length !== 4) {// Check if exactly 4 files are selected
       setError('⚠️ Please select exactly 4 files.');
-    } else if (onlyCsv.length !== 4) {
+    } else if (onlyCsv.length !== 4) {// Check if all files are CSV
       setError('⚠️ All 4 files must be CSV (.csv).');
     } else {
       setError('');
     }
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async () => { // Handle upload and validation
     if (!isValidSelection) {
       setError('⚠️ Please upload exactly 4 CSV files.');
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await uploadNICFiles(files, token);
 
-      setResults(response?.records || []);
+      const token = localStorage.getItem('token');
+      const response = await uploadNICFiles(files, token);//wait for the response from uploadNICFiles
+
+      setResults(response?.records || []); // set results from response
       setResponseInfo({
         message: response?.message || 'Upload completed.',
         filesProcessed: response?.filesProcessed ?? files.length,
@@ -66,7 +67,7 @@ const NICUploadPage = () => {
     }
   };
 
-  const handleClear = () => {
+  const handleClear = () => { // Clear all states and reset file input
     setFiles([]);
     setResults([]);
     setResponseInfo(null);
@@ -86,7 +87,7 @@ const NICUploadPage = () => {
             type="file"
             multiple
             accept=".csv,text/csv"
-            onChange={handleFileChange}
+            onChange={handleFileChange} // Handle file selection
             style={styles.input}
           />
 
@@ -113,7 +114,7 @@ const NICUploadPage = () => {
 
           <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
             <button
-              onClick={handleUpload}
+              onClick={handleUpload} // Handle upload and validation
               style={{
                 ...styles.button,
                 opacity: isValidSelection ? 1 : 0.6,
@@ -124,8 +125,9 @@ const NICUploadPage = () => {
               ✅ Upload and Validate
             </button>
 
+
             <button
-              onClick={handleClear}
+              onClick={handleClear} // Clear all states and reset file input
               style={{
                 ...styles.button,
                 background: 'linear-gradient(to right, #ff6a6a, #ff0000)',
