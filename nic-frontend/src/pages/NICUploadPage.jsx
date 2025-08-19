@@ -1,19 +1,19 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { uploadNICFiles } from '../services/nicService'; //for the response from the uploadNICFiles function
+import { uploadNICFiles } from '../services/nicService';
 import Navbar from '../components/Navbar';
 
 const NICUploadPage = () => {
-  const [files, setFiles] = useState([]); // Array to hold selected files
-  // State to hold results and response info
+  const [files, setFiles] = useState([]);
   const [results, setResults] = useState([]);
   const [responseInfo, setResponseInfo] = useState(null);
   const [error, setError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
 
   // Helper: check exactly 4 CSV files selected
   const isValidSelection = useMemo(() => {
     if (files.length !== 4) return false;
-    // Accept both ".csv" and "text/csv" types (browsers differ)
     return files.every(
       (f) =>
         f.name.toLowerCase().endsWith('.csv') ||
@@ -23,7 +23,7 @@ const NICUploadPage = () => {
   }, [files]);
 
   const handleFileChange = (e) => {
-    const picked = Array.from(e.target.files || []);// Convert FileList to Array
+    const picked = Array.from(e.target.files || []);
     const onlyCsv = picked.filter(
       (f) =>
         f.name.toLowerCase().endsWith('.csv') ||
@@ -32,27 +32,62 @@ const NICUploadPage = () => {
     );
     setFiles(onlyCsv);
 
-    if (picked.length !== 4) {// Check if exactly 4 files are selected
-      setError('⚠️ Please select exactly 4 files.');
-    } else if (onlyCsv.length !== 4) {// Check if all files are CSV
-      setError('⚠️ All 4 files must be CSV (.csv).');
+    if (picked.length !== 4) {
+      setError('Please select exactly 4 files.');
+    } else if (onlyCsv.length !== 4) {
+      setError('All 4 files must be CSV (.csv).');
     } else {
       setError('');
     }
   };
 
-  const handleUpload = async () => { // Handle upload and validation
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      const onlyCsv = droppedFiles.filter(
+        (f) =>
+          f.name.toLowerCase().endsWith('.csv') ||
+          f.type === 'text/csv' ||
+          f.type === 'application/vnd.ms-excel'
+      );
+      setFiles(onlyCsv);
+
+      if (droppedFiles.length !== 4) {
+        setError('Please select exactly 4 files.');
+      } else if (onlyCsv.length !== 4) {
+        setError('All 4 files must be CSV (.csv).');
+      } else {
+        setError('');
+      }
+    }
+  };
+
+  const handleUpload = async () => {
     if (!isValidSelection) {
-      setError('⚠️ Please upload exactly 4 CSV files.');
+      setError('Please upload exactly 4 CSV files.');
       return;
     }
 
+    setIsUploading(true);
     try {
-
       const token = localStorage.getItem('token');
-      const response = await uploadNICFiles(files, token);//wait for the response from uploadNICFiles
+      const response = await uploadNICFiles(files, token);
 
-      setResults(response?.records || []); // set results from response
+      setResults(response?.records || []);
       setResponseInfo({
         message: response?.message || 'Upload completed.',
         filesProcessed: response?.filesProcessed ?? files.length,
@@ -63,11 +98,12 @@ const NICUploadPage = () => {
       setError('');
     } catch (err) {
       console.error(err);
-      setError('❌ Upload failed. Please try again.');
+      setError('Upload failed. Please try again.');
     }
+    setIsUploading(false);
   };
 
-  const handleClear = () => { // Clear all states and reset file input
+  const handleClear = () => {
     setFiles([]);
     setResults([]);
     setResponseInfo(null);
@@ -75,121 +111,315 @@ const NICUploadPage = () => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   return (
     <>
       <Navbar />
       <div style={styles.wrapper}>
-        <div style={styles.card}>
-          <h1 style={styles.title}>📂 NIC CSV Upload</h1>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept=".csv,text/csv"
-            onChange={handleFileChange} // Handle file selection
-            style={styles.input}
-          />
-
-          {/* Selected files list */}
-          {files.length > 0 && (
-            <div style={styles.fileList}>
-              <p style={{ margin: 0 }}>
-                <strong>📂 Files Selected ({files.length}/4):</strong>
-              </p>
-              <ul style={styles.fileUl}>
-                {files.map((file, idx) => (
-                  <li key={idx} style={styles.fileItem}>
-                    {file.name}
-                  </li>
-                ))}
-              </ul>
-              {!isValidSelection && (
-                <p style={{ ...styles.error, marginTop: 8 }}>
-                  ⚠️ Need exactly 4 CSV files.
-                </p>
-              )}
+        <div style={styles.container}>
+          {/* Header Section */}
+          <div style={styles.header}>
+            <div style={styles.headerIcon}>
+              <span style={styles.iconEmoji}>📂</span>
             </div>
-          )}
-
-          <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-            <button
-              onClick={handleUpload} // Handle upload and validation
-              style={{
-                ...styles.button,
-                opacity: isValidSelection ? 1 : 0.6,
-                cursor: isValidSelection ? 'pointer' : 'not-allowed',
-              }}
-              disabled={!isValidSelection}
-            >
-              ✅ Upload and Validate
-            </button>
-
-
-            <button
-              onClick={handleClear} // Clear all states and reset file input
-              style={{
-                ...styles.button,
-                background: 'linear-gradient(to right, #ff6a6a, #ff0000)',
-              }}
-            >
-              🗑 Clear Files
-            </button>
+            <h1 style={styles.title}>NIC CSV Upload</h1>
+            <p style={styles.subtitle}>
+              Upload exactly 4 CSV files for validation and processing
+            </p>
           </div>
 
-          {error && <p style={styles.error}>{error}</p>}
+          {/* Upload Section */}
+          <div style={styles.uploadSection}>
+            <div
+              style={{
+                ...styles.uploadArea,
+                ...(dragActive ? styles.uploadAreaActive : {}),
+                ...(files.length > 0 ? styles.uploadAreaWithFiles : {})
+              }}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".csv,text/csv"
+                onChange={handleFileChange}
+                style={styles.hiddenInput}
+              />
 
-          {responseInfo && (
-            <div style={styles.summary}>
-              <p style={{ color: '#4CAF50', fontWeight: 'bold', marginTop: 0 }}>
-                {responseInfo.message}
-              </p>
-              <p style={{ margin: '6px 0' }}>
-                <strong>Files Processed:</strong> {responseInfo.filesProcessed}
-              </p>
-              <p style={{ margin: '6px 0' }}>
-                <strong>Inserted:</strong> {responseInfo.inserted}
-              </p>
-              <p style={{ margin: '6px 0' }}>
-                <strong>Skipped:</strong> {responseInfo.skipped}
-              </p>
-              {responseInfo.skippedNICs?.length > 0 && (
-                <p style={styles.skipped}>
-                  <strong>Skipped NICs:</strong> {responseInfo.skippedNICs.join(', ')}
+              <div style={styles.uploadContent}>
+                <div style={styles.uploadIcon}>
+                  {files.length > 0 ? (
+                    <span style={styles.uploadIconEmoji}>✅</span>
+                  ) : (
+                    <span style={styles.uploadIconEmoji}>☁️</span>
+                  )}
+                </div>
+                <h3 style={styles.uploadTitle}>
+                  {files.length > 0 ? 'Files Selected' : 'Drop your CSV files here'}
+                </h3>
+                <p style={styles.uploadText}>
+                  {files.length > 0
+                    ? `${files.length}/4 files selected`
+                    : 'or click to browse'
+                  }
                 </p>
+                <div style={styles.uploadRequirements}>
+                  <span style={styles.requirement}>📋 Exactly 4 CSV files</span>
+                  <span style={styles.requirement}>📊 .csv format only</span>
+                </div>
+              </div>
+            </div>
+
+            {/* File List */}
+            {files.length > 0 && (
+              <div style={styles.fileList}>
+                <div style={styles.fileListHeader}>
+                  <span style={styles.fileListTitle}>📁 Selected Files ({files.length}/4)</span>
+                  {isValidSelection && (
+                    <span style={styles.validBadge}>✅ Valid Selection</span>
+                  )}
+                </div>
+                <div style={styles.fileGrid}>
+                  {files.map((file, idx) => (
+                    <div key={idx} style={styles.fileCard}>
+                      <div style={styles.fileCardHeader}>
+                        <span style={styles.fileIcon}>📄</span>
+                        <span style={styles.fileName}>{file.name}</span>
+                      </div>
+                      <div style={styles.fileDetails}>
+                        <span style={styles.fileSize}>{formatFileSize(file.size)}</span>
+                        <span style={styles.fileType}>CSV</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {!isValidSelection && (
+                  <div style={styles.warningCard}>
+                    <span style={styles.warningIcon}>⚠��</span>
+                    <span style={styles.warningText}>Need exactly 4 CSV files to proceed</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div style={styles.actionButtons}>
+              <button
+                onClick={handleUpload}
+                style={{
+                  ...styles.primaryButton,
+                  ...(isValidSelection ? {} : styles.disabledButton),
+                  ...(isUploading ? styles.loadingButton : {})
+                }}
+                disabled={!isValidSelection || isUploading}
+              >
+                {isUploading ? (
+                  <>
+                    <span style={styles.spinner}>⟳</span>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <span style={styles.buttonIcon}>🚀</span>
+                    Upload & Validate
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={handleClear}
+                style={styles.secondaryButton}
+                disabled={isUploading}
+              >
+                <span style={styles.buttonIcon}>🗑️</span>
+                Clear All
+              </button>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div style={styles.errorCard}>
+                <span style={styles.errorIcon}>❌</span>
+                <span style={styles.errorText}>{error}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Response Summary */}
+          {responseInfo && (
+            <div style={styles.summarySection}>
+              <div style={styles.summaryHeader}>
+                <span style={styles.summaryIcon}>📊</span>
+                <h3 style={styles.summaryTitle}>Processing Summary</h3>
+              </div>
+              <div style={styles.summaryGrid}>
+                <div style={styles.summaryCard}>
+                  <span style={styles.summaryCardIcon}>📁</span>
+                  <span style={styles.summaryCardLabel}>Files Processed</span>
+                  <span style={styles.summaryCardValue}>{responseInfo.filesProcessed}</span>
+                </div>
+                <div style={styles.summaryCard}>
+                  <span style={styles.summaryCardIcon}>✅</span>
+                  <span style={styles.summaryCardLabel}>Records Inserted</span>
+                  <span style={styles.summaryCardValue}>{responseInfo.inserted}</span>
+                </div>
+                <div style={styles.summaryCard}>
+                  <span style={styles.summaryCardIcon}>⏭️</span>
+                  <span style={styles.summaryCardLabel}>Records Skipped</span>
+                  <span style={styles.summaryCardValue}>{responseInfo.skipped}</span>
+                </div>
+              </div>
+              <div style={styles.successMessage}>
+                <span style={styles.successIcon}>🎉</span>
+                <span style={styles.successText}>{responseInfo.message}</span>
+              </div>
+              {responseInfo.skippedNICs?.length > 0 && (
+                <div style={styles.skippedSection}>
+                  <h4 style={styles.skippedTitle}>⚠️ Skipped NICs:</h4>
+                  <div style={styles.skippedList}>
+                    {responseInfo.skippedNICs.map((nic, idx) => (
+                      <span key={idx} style={styles.skippedItem}>{nic}</span>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           )}
 
+          {/* Results Table */}
           {results.length > 0 && (
-            <div style={styles.tableContainer}>
-              <h2 style={styles.resultTitle}>📊 Validation Results</h2>
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    <th style={styles.th}>NIC</th>
-                    <th style={styles.th}>DOB</th>
-                    <th style={styles.th}>Age</th>
-                    <th style={styles.th}>Gender</th>
-                    <th style={styles.th}>File Name</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {results.map((r, idx) => (
-                    <tr key={idx}>
-                      <td style={styles.td}>{r.nicNumber}</td>
-                      <td style={styles.td}>{r.birthday}</td>
-                      <td style={styles.td}>{r.age}</td>
-                      <td style={styles.td}>{r.gender}</td>
-                      <td style={styles.td}>{r.fileName}</td>
+            <div style={styles.resultsSection}>
+              <div style={styles.resultsHeader}>
+                <span style={styles.resultsIcon}>📋</span>
+                <h3 style={styles.resultsTitle}>Validation Results</h3>
+                <span style={styles.resultsBadge}>{results.length} Records</span>
+              </div>
+              <div style={styles.tableContainer}>
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.th}>NIC Number</th>
+                      <th style={styles.th}>Date of Birth</th>
+                      <th style={styles.th}>Age</th>
+                      <th style={styles.th}>Gender</th>
+                      <th style={styles.th}>Source File</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {results.map((r, idx) => (
+                      <tr key={idx} style={styles.tr}>
+                        <td style={styles.td}>{r.nicNumber}</td>
+                        <td style={styles.td}>{r.birthday}</td>
+                        <td style={styles.td}>{r.age}</td>
+                        <td style={{...styles.td, ...styles.genderCell}}>
+                          <span style={r.gender === 'Male' ? styles.maleTag : styles.femaleTag}>
+                            {r.gender}
+                          </span>
+                        </td>
+                        <td style={styles.td}>{r.fileName}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Enhanced CSS Animations */}
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+          20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .fade-in-up {
+          animation: fadeInUp 0.6s ease-out;
+        }
+
+        .slide-in-left {
+          animation: slideInLeft 0.5s ease-out;
+        }
+
+        .pulse-animation {
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        .spin-animation {
+          animation: spin 1s linear infinite;
+        }
+
+        .shake-animation {
+          animation: shake 0.5s ease-in-out;
+        }
+
+        /* Hover Effects */
+        .hover-lift {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hover-lift:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+          .fade-in-up {
+            animation: fadeInUp 0.4s ease-out;
+          }
+        }
+      `}</style>
     </>
   );
 };
@@ -197,112 +427,474 @@ const NICUploadPage = () => {
 const styles = {
   wrapper: {
     minHeight: '100vh',
-    background: 'linear-gradient(to bottom right, #667eea, #764ba2)',
-    padding: '80px 20px 40px 20px',
+    background: `
+      linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.85) 25%, rgba(51, 65, 85, 0.8) 50%, rgba(71, 85, 105, 0.75) 75%, rgba(100, 116, 139, 0.7) 100%),
+      url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')
+    `,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
+    padding: '100px 20px 40px',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'start',
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
-  card: {
-    maxWidth: '900px',
+  container: {
+    maxWidth: '1000px',
     width: '100%',
-    padding: '40px',
-    borderRadius: '20px',
-    background: 'rgba(255, 255, 255, 0.12)',
-    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
-    backdropFilter: 'blur(12px)',
-    color: '#fff',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '32px',
+  },
+  header: {
+    textAlign: 'center',
+    color: 'white',
+    marginBottom: '20px',
+  },
+  headerIcon: {
+    width: '80px',
+    height: '80px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: '0 auto 24px',
+    backdropFilter: 'blur(20px)',
+    border: '2px solid rgba(255, 255, 255, 0.2)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+  },
+  iconEmoji: {
+    fontSize: '36px',
   },
   title: {
-    fontSize: '32px',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: '30px',
+    fontSize: '48px',
+    fontWeight: '700',
+    margin: '0 0 16px 0',
+    letterSpacing: '-1px',
+    textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
   },
-  input: {
-    marginBottom: '12px',
-    padding: '12px',
-    width: '100%',
+  subtitle: {
+    fontSize: '18px',
+    opacity: 0.9,
+    margin: 0,
+    fontWeight: '400',
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  uploadSection: {
+    background: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: '24px',
+    padding: '40px',
+    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+  },
+  uploadArea: {
+    border: '3px dashed #cbd5e1',
+    borderRadius: '16px',
+    padding: '48px 24px',
+    textAlign: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    background: '#f8fafc',
+    marginBottom: '24px',
+  },
+  uploadAreaActive: {
+    borderColor: '#3b82f6',
+    background: '#eff6ff',
+    transform: 'scale(1.02)',
+  },
+  uploadAreaWithFiles: {
+    borderColor: '#10b981',
+    background: '#f0fdf4',
+  },
+  hiddenInput: {
+    display: 'none',
+  },
+  uploadContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  uploadIcon: {
+    width: '64px',
+    height: '64px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 8px 25px rgba(59, 130, 246, 0.3)',
+  },
+  uploadIconEmoji: {
+    fontSize: '28px',
+  },
+  uploadTitle: {
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#1e293b',
+    margin: 0,
+  },
+  uploadText: {
     fontSize: '16px',
-    borderRadius: '8px',
-    border: '1px solid #ccc',
-    backgroundColor: '#f9f9f9',
-    color: '#222',
+    color: '#64748b',
+    margin: 0,
+  },
+  uploadRequirements: {
+    display: 'flex',
+    gap: '24px',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  requirement: {
+    fontSize: '14px',
+    color: '#475569',
+    background: 'rgba(51, 65, 85, 0.1)',
+    padding: '8px 16px',
+    borderRadius: '20px',
+    fontWeight: '500',
   },
   fileList: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    padding: '10px 12px',
-    borderRadius: '8px',
-    marginBottom: '15px',
+    background: '#f8fafc',
+    borderRadius: '16px',
+    padding: '24px',
+    marginBottom: '24px',
+    border: '1px solid #e2e8f0',
+  },
+  fileListHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+  },
+  fileListTitle: {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#1e293b',
+  },
+  validBadge: {
+    background: '#10b981',
+    color: 'white',
+    padding: '6px 12px',
+    borderRadius: '12px',
+    fontSize: '12px',
+    fontWeight: '600',
+  },
+  fileGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+    gap: '12px',
+    marginBottom: '16px',
+  },
+  fileCard: {
+    background: 'white',
+    borderRadius: '12px',
+    padding: '16px',
+    border: '1px solid #e2e8f0',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+      transform: 'translateY(-2px)',
+    }
+  },
+  fileCardHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginBottom: '8px',
+  },
+  fileIcon: {
+    fontSize: '20px',
+  },
+  fileName: {
     fontSize: '14px',
+    fontWeight: '600',
+    color: '#1e293b',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    flex: 1,
   },
-  fileUl: {
-    margin: '6px 0 0 18px',
+  fileDetails: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  fileItem: {
-    color: '#fff',
-    listStyleType: 'disc',
-    margin: '4px 0',
-    wordBreak: 'break-all',
+  fileSize: {
+    fontSize: '12px',
+    color: '#64748b',
   },
-  button: {
-    background: 'linear-gradient(to right, #00c6ff, #0072ff)',
-    color: '#fff',
-    fontWeight: 'bold',
-    padding: '12px 30px',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '16px',
-    transition: '0.3s ease',
-    marginBottom: '0px',
-  },
-  error: {
-    color: '#ff4d4f',
-    backgroundColor: '#fff0f0',
-    padding: '10px',
+  fileType: {
+    background: '#dbeafe',
+    color: '#1e40af',
+    padding: '2px 8px',
     borderRadius: '6px',
-    fontWeight: 'bold',
+    fontSize: '10px',
+    fontWeight: '600',
+  },
+  warningCard: {
+    background: '#fef3c7',
+    border: '1px solid #f59e0b',
+    borderRadius: '12px',
+    padding: '12px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  warningIcon: {
+    fontSize: '16px',
+  },
+  warningText: {
+    color: '#92400e',
     fontSize: '14px',
+    fontWeight: '500',
   },
-  summary: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: '10px',
-    padding: '15px 20px',
-    marginTop: '20px',
-    fontSize: '15px',
+  actionButtons: {
+    display: 'flex',
+    gap: '16px',
+    justifyContent: 'center',
+    marginBottom: '24px',
+    flexWrap: 'wrap',
   },
-  skipped: {
-    color: '#ffb4b4',
-    fontWeight: 'bold',
-    marginTop: '10px',
+  primaryButton: {
+    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '12px',
+    padding: '16px 32px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: '0 8px 25px rgba(59, 130, 246, 0.4)',
+    }
+  },
+  secondaryButton: {
+    background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '12px',
+    padding: '16px 32px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: '0 8px 25px rgba(239, 68, 68, 0.4)',
+    }
+  },
+  disabledButton: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+    '&:hover': {
+      transform: 'none',
+    }
+  },
+  loadingButton: {
+    opacity: 0.8,
+  },
+  buttonIcon: {
+    fontSize: '16px',
+  },
+  spinner: {
+    fontSize: '16px',
+    animation: 'spin 1s linear infinite',
+  },
+  errorCard: {
+    background: '#fef2f2',
+    border: '1px solid #fecaca',
+    borderRadius: '12px',
+    padding: '16px 20px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    animation: 'shake 0.5s ease-in-out',
+  },
+  errorIcon: {
+    fontSize: '20px',
+  },
+  errorText: {
+    color: '#dc2626',
+    fontSize: '14px',
+    fontWeight: '500',
+  },
+  summarySection: {
+    background: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: '24px',
+    padding: '32px',
+    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+  },
+  summaryHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '24px',
+  },
+  summaryIcon: {
+    fontSize: '24px',
+  },
+  summaryTitle: {
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#1e293b',
+    margin: 0,
+  },
+  summaryGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '16px',
+    marginBottom: '24px',
+  },
+  summaryCard: {
+    background: '#f8fafc',
+    borderRadius: '16px',
+    padding: '24px',
+    border: '1px solid #e2e8f0',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '8px',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      transform: 'translateY(-4px)',
+      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.1)',
+    }
+  },
+  summaryCardIcon: {
+    fontSize: '32px',
+  },
+  summaryCardLabel: {
+    fontSize: '14px',
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  summaryCardValue: {
+    fontSize: '28px',
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  successMessage: {
+    background: '#f0fdf4',
+    border: '1px solid #bbf7d0',
+    borderRadius: '12px',
+    padding: '16px 20px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '16px',
+  },
+  successIcon: {
+    fontSize: '20px',
+  },
+  successText: {
+    color: '#15803d',
+    fontSize: '16px',
+    fontWeight: '600',
+  },
+  skippedSection: {
+    background: '#fef3c7',
+    border: '1px solid #f59e0b',
+    borderRadius: '12px',
+    padding: '16px 20px',
+  },
+  skippedTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#92400e',
+    margin: '0 0 12px 0',
+  },
+  skippedList: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px',
+  },
+  skippedItem: {
+    background: '#fed7aa',
+    color: '#9a3412',
+    padding: '4px 8px',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: '500',
+  },
+  resultsSection: {
+    background: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: '24px',
+    padding: '32px',
+    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+  },
+  resultsHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '24px',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+  },
+  resultsIcon: {
+    fontSize: '24px',
+  },
+  resultsTitle: {
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#1e293b',
+    margin: 0,
+    flex: 1,
+  },
+  resultsBadge: {
+    background: '#3b82f6',
+    color: 'white',
+    padding: '8px 16px',
+    borderRadius: '12px',
+    fontSize: '14px',
+    fontWeight: '600',
   },
   tableContainer: {
-    marginTop: '30px',
     overflowX: 'auto',
-  },
-  resultTitle: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-    marginBottom: '10px',
-    color: '#fff',
+    borderRadius: '16px',
+    border: '1px solid #e2e8f0',
   },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
-    fontSize: '15px',
-    borderRadius: '12px',
-    overflow: 'hidden',
+    fontSize: '14px',
+    backgroundColor: 'white',
   },
   th: {
-    padding: '14px',
-    backgroundColor: '#004080',
-    color: '#fff',
-    textAlign: 'center',
-    fontWeight: 'bold',
-    border: '1px solid #ddd', // <- fixed
+    padding: '16px 12px',
+    background: 'linear-gradient(135deg, #1e293b, #334155)',
+    color: 'white',
+    textAlign: 'left',
+    fontWeight: '600',
+    fontSize: '14px',
+    letterSpacing: '0.5px',
+    borderBottom: 'none',
+  },
+  tr: {
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      backgroundColor: '#f8fafc',
+    }
   },
   td: {
-    padding: '12px',
+    padding: '16px 12px',
+    borderBottom: '1px solid #e2e8f0',
+    color: '#374151',
     textAlign: 'center',
     backgroundColor: 'rgba(255,255,255,0.85)',
     color: '#222',
