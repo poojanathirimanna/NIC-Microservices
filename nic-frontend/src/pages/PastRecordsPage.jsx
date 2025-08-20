@@ -4,12 +4,15 @@ import {
   Box, Typography, Button, Table, TableBody,
   TableCell, TableContainer, TableHead, TableRow,
   Paper, Stack, TablePagination, Chip, TextField, InputAdornment,
-  IconButton, Tooltip, Fade, Slide
+  IconButton, Tooltip, Fade, Slide, LinearProgress, Avatar
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import TableViewIcon from '@mui/icons-material/TableView';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import PersonIcon from '@mui/icons-material/Person';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -151,14 +154,42 @@ const PastRecordsPage = () => {
 
   const paginatedRecords = filteredRecords.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+  // Calculate analytics data
+  const analytics = {
+    totalRecords: records.length,
+    maleCount: records.filter(r => r.gender === 'Male').length,
+    femaleCount: records.filter(r => r.gender === 'Female').length,
+    averageAge: records.length > 0 ? Math.round(records.reduce((sum, r) => sum + (parseInt(r.age) || 0), 0) / records.length) : 0,
+    recentRecords: records.filter(r => {
+      const recordDate = new Date(r.createdAt);
+      const lastWeek = new Date();
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      return recordDate >= lastWeek;
+    }).length,
+  };
+
   if (loading) {
     return (
       <>
         <Navbar />
         <div style={styles.wrapper}>
           <div style={styles.loadingContainer}>
-            <div style={styles.spinner}>⟳</div>
+            <div style={styles.modernSpinner}>
+              <div style={styles.spinnerRing}></div>
+              <div style={styles.spinnerInner}>📄</div>
+            </div>
             <h2 style={styles.loadingText}>Loading Records...</h2>
+            <div style={styles.loadingSubtext}>Fetching historical data</div>
+            <LinearProgress
+              sx={{
+                width: '240px',
+                borderRadius: '4px',
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: '#4caf50',
+                }
+              }}
+            />
           </div>
         </div>
       </>
@@ -185,28 +216,104 @@ const PastRecordsPage = () => {
       <Navbar />
       <div style={styles.wrapper}>
         <div style={styles.container}>
-          {/* Header Section */}
+          {/* Enhanced Header Section with Analytics */}
           <div style={styles.header}>
-            <div style={styles.headerIcon}>
+            <div style={styles.headerIcon} className="pulse-animation">
               <span style={styles.iconEmoji}>📄</span>
             </div>
-            <h1 style={styles.title}>Past Records</h1>
-            <p style={styles.subtitle}>
-              View and export your NIC processing history
+            <h1 style={styles.title} className="fade-in-up">Past Records Archive</h1>
+            <p style={styles.subtitle} className="fade-in-up">
+              Comprehensive view and export of your NIC processing history
             </p>
+            <div style={styles.headerStats}>
+              <div style={styles.quickStat}>
+                <span style={styles.quickStatIcon}>📊</span>
+                <span style={styles.quickStatText}>{analytics.totalRecords} Records</span>
+              </div>
+              <div style={styles.quickStat}>
+                <span style={styles.quickStatIcon}>🆕</span>
+                <span style={styles.quickStatText}>{analytics.recentRecords} This Week</span>
+              </div>
+              <div style={styles.quickStat}>
+                <span style={styles.quickStatIcon}>📅</span>
+                <span style={styles.quickStatText}>Avg Age: {analytics.averageAge}</span>
+              </div>
+            </div>
             <Chip
-              label={`${filteredRecords.length} Total Records`}
+              label={`Last Updated: ${new Date().toLocaleString()}`}
               variant="outlined"
               sx={{
                 color: 'white',
                 borderColor: 'rgba(255, 255, 255, 0.3)',
                 background: 'rgba(255, 255, 255, 0.1)',
                 backdropFilter: 'blur(10px)',
-                fontWeight: '600',
-                fontSize: '14px',
-                mt: 2
+                fontWeight: '500',
+                mt: 2,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  transform: 'translateY(-2px)',
+                }
               }}
             />
+          </div>
+
+          {/* Analytics Overview Cards */}
+          <div style={styles.analyticsSection}>
+            <h3 style={styles.sectionTitle}>📈 Records Overview</h3>
+            <div style={styles.analyticsGrid}>
+              <Slide in direction="up" timeout={400}>
+                <div style={styles.analyticsCard} className="hover-lift">
+                  <div style={{...styles.cardIcon, background: 'linear-gradient(135deg, #667eea, #764ba2)'}}>
+                    <span style={styles.cardIconEmoji}>📊</span>
+                  </div>
+                  <div style={styles.cardContent}>
+                    <h4 style={styles.cardTitle}>Total Records</h4>
+                    <div style={styles.cardValue}>{analytics.totalRecords.toLocaleString()}</div>
+                    <p style={styles.cardDescription}>All processed NIC records</p>
+                  </div>
+                </div>
+              </Slide>
+
+              <Slide in direction="up" timeout={550}>
+                <div style={styles.analyticsCard} className="hover-lift">
+                  <div style={{...styles.cardIcon, background: 'linear-gradient(135deg, #4facfe, #00f2fe)'}}>
+                    <span style={styles.cardIconEmoji}>👨</span>
+                  </div>
+                  <div style={styles.cardContent}>
+                    <h4 style={styles.cardTitle}>Male Records</h4>
+                    <div style={styles.cardValue}>{analytics.maleCount.toLocaleString()}</div>
+                    <p style={styles.cardDescription}>{((analytics.maleCount / analytics.totalRecords) * 100 || 0).toFixed(1)}% of total</p>
+                  </div>
+                </div>
+              </Slide>
+
+              <Slide in direction="up" timeout={700}>
+                <div style={styles.analyticsCard} className="hover-lift">
+                  <div style={{...styles.cardIcon, background: 'linear-gradient(135deg, #f093fb, #f5576c)'}}>
+                    <span style={styles.cardIconEmoji}>👩</span>
+                  </div>
+                  <div style={styles.cardContent}>
+                    <h4 style={styles.cardTitle}>Female Records</h4>
+                    <div style={styles.cardValue}>{analytics.femaleCount.toLocaleString()}</div>
+                    <p style={styles.cardDescription}>{((analytics.femaleCount / analytics.totalRecords) * 100 || 0).toFixed(1)}% of total</p>
+                  </div>
+                </div>
+              </Slide>
+
+              <Slide in direction="up" timeout={850}>
+                <div style={styles.analyticsCard} className="hover-lift">
+                  <div style={{...styles.cardIcon, background: 'linear-gradient(135deg, #10b981, #059669)'}}>
+                    <span style={styles.cardIconEmoji}>🆕</span>
+                  </div>
+                  <div style={styles.cardContent}>
+                    <h4 style={styles.cardTitle}>Recent Activity</h4>
+                    <div style={styles.cardValue}>{analytics.recentRecords}</div>
+                    <p style={styles.cardDescription}>Records from last 7 days</p>
+                  </div>
+                </div>
+              </Slide>
+            </div>
           </div>
 
           {/* Controls Section */}
@@ -542,16 +649,46 @@ const styles = {
     minHeight: '60vh',
     color: 'white',
   },
-  spinner: {
-    fontSize: '24px',
-    animation: 'spin 1s linear infinite',
+  modernSpinner: {
+    position: 'relative',
+    width: '64px',
+    height: '64px',
     marginBottom: '20px',
-    display: 'inline-block',
+  },
+  spinnerRing: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: '50%',
+    border: '8px solid rgba(255, 255, 255, 0.2)',
+    borderTopColor: '#4caf50',
+    animation: 'spin 0.8s linear infinite',
+  },
+  spinnerInner: {
+    position: 'absolute',
+    width: '28px',
+    height: '28px',
+    borderRadius: '50%',
+    background: 'white',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#4caf50',
   },
   loadingText: {
     fontSize: '24px',
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.9)',
+  },
+  loadingSubtext: {
+    fontSize: '14px',
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: '16px',
   },
   errorContainer: {
     display: 'flex',
@@ -754,6 +891,98 @@ const styles = {
     borderRadius: '12px',
     overflow: 'hidden',
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+  },
+  headerStats: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '24px',
+    marginTop: '16px',
+  },
+  quickStat: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '12px 16px',
+    borderRadius: '12px',
+    background: 'rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2)',
+    }
+  },
+  quickStatIcon: {
+    fontSize: '24px',
+    color: '#4caf50',
+  },
+  quickStatText: {
+    fontSize: '16px',
+    color: 'white',
+    fontWeight: '500',
+  },
+  analyticsSection: {
+    background: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: '24px',
+    padding: '32px',
+    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+  },
+  analyticsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+    gap: '16px',
+    marginTop: '16px',
+  },
+  analyticsCard: {
+    background: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: '16px',
+    padding: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.1)',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2)',
+    }
+  },
+  cardIcon: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '24px',
+    color: 'white',
+  },
+  cardIconEmoji: {
+    fontSize: '28px',
+  },
+  cardContent: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    margin: 0,
+    color: 'white',
+  },
+  cardValue: {
+    fontSize: '24px',
+    fontWeight: '700',
+    margin: '4px 0 0 0',
+    color: 'white',
+  },
+  cardDescription: {
+    fontSize: '14px',
+    color: 'rgba(255, 255, 255, 0.8)',
+    margin: 0,
   },
 };
 

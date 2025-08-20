@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { uploadNICFiles } from '../services/nicService';
 import Navbar from '../components/Navbar';
 import UploadHeader from '../components/upload/UploadHeader';
@@ -16,7 +16,19 @@ const NICUploadPage = () => {
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const fileInputRef = useRef(null);
+
+  // Window resize handler for responsive design
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Mobile breakpoint check
+  const isMobile = windowWidth <= 768;
+  const isTablet = windowWidth <= 1024;
 
   // Helper: check exactly 4 CSV files selected
   const isValidSelection = useMemo(() => {
@@ -147,7 +159,7 @@ const NICUploadPage = () => {
         <RotatingBackground />
         <div style={styles.container}>
           {/* Header Section */}
-          <UploadHeader styles={styles} />
+          <UploadHeader styles={styles} isMobile={isMobile} isTablet={isTablet} />
 
           {/* Upload Section */}
           <div style={styles.uploadSection}>
@@ -349,6 +361,7 @@ const styles = {
     margin: '0 0 16px 0',
     letterSpacing: '-1px',
     textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+    opacity:0.9,
   },
   subtitle: {
     fontSize: '18px',
@@ -372,7 +385,8 @@ const styles = {
     textAlign: 'center',
     cursor: 'pointer',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'rgba(255, 255, 255, 0.1)', // Changed from 0.05 to 0.1 for better visibility
+    backdropFilter: 'blur(20px)', // Added glassmorphism effect
     marginBottom: '24px',
   },
   uploadAreaActive: {
@@ -409,13 +423,15 @@ const styles = {
   uploadTitle: {
     fontSize: '24px',
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#ffffff', // Ensured white text
     margin: 0,
+    textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)', // Added text shadow for better visibility
   },
   uploadText: {
     fontSize: '16px',
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.9)', // Increased opacity for better visibility
     margin: 0,
+    textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)', // Added text shadow
   },
   uploadRequirements: {
     display: 'flex',
@@ -425,11 +441,13 @@ const styles = {
   },
   requirement: {
     fontSize: '14px',
-    color: 'rgba(255, 255, 255, 0.9)',
-    background: 'rgba(255, 255, 255, 0.15)',
+    color: 'rgba(255, 255, 255, 0.9)', // Increased opacity
+    background: 'rgba(255, 255, 255, 0.2)', // Increased background opacity
     padding: '8px 16px',
     borderRadius: '20px',
     fontWeight: '500',
+    border: '1px solid rgba(255, 255, 255, 0.3)', // Added border for definition
+    backdropFilter: 'blur(10px)', // Added glassmorphism
   },
   fileList: {
     background: 'rgba(255, 255, 255, 0.15)',

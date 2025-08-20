@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, Card, CardContent, Grid, Grow, Slide, Chip, Avatar, LinearProgress } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { PieChart } from '@mui/x-charts/PieChart';
@@ -10,6 +10,14 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [animateNumbers, setAnimateNumbers] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -48,6 +56,27 @@ const DashboardPage = () => {
   const calculatePercentage = (value, total) => {
     if (total === 0) return 0;
     return ((value / total) * 100).toFixed(1);
+  };
+
+  // Calculate responsive chart dimensions
+  const getChartWidth = () => {
+    if (windowWidth <= 768) {
+      return Math.min(windowWidth - 100, 320); // Mobile: account for padding and margins
+    } else if (windowWidth <= 1024) {
+      return Math.min(windowWidth * 0.45, 450); // Tablet
+    }
+    return 400; // Desktop
+  };
+
+  const getChartHeight = () => {
+    return windowWidth <= 768 ? 240 : 280;
+  };
+
+  const getChartMargins = () => {
+    if (windowWidth <= 768) {
+      return { left: 30, right: 30, top: 20, bottom: 40 };
+    }
+    return { left: 60, right: 60, top: 40, bottom: 60 };
   };
 
   const summaryCards = [
@@ -132,11 +161,13 @@ const DashboardPage = () => {
             <div style={styles.headerIcon} className="pulse-animation">
               <span style={styles.iconEmoji}>📊</span>
             </div>
-            <h1 style={styles.title} className="fade-in-up">Dashboard Analytics</h1>
-            <p style={styles.subtitle} className="fade-in-up">
+            <h1 style={{...styles.title, fontSize: windowWidth <= 768 ? '32px' : '48px'}} className="fade-in-up">
+              Dashboard Analytics
+            </h1>
+            <p style={{...styles.subtitle, fontSize: windowWidth <= 768 ? '14px' : '18px'}} className="fade-in-up">
               Real-time overview of NIC records and demographic insights
             </p>
-            <div style={styles.headerStats}>
+            <div style={{...styles.headerStats, flexDirection: windowWidth <= 768 ? 'column' : 'row', gap: windowWidth <= 768 ? '12px' : '24px'}}>
               <div style={styles.quickStat}>
                 <span style={styles.quickStatIcon}>⚡</span>
                 <span style={styles.quickStatText}>Live Data</span>
@@ -155,6 +186,7 @@ const DashboardPage = () => {
                 background: 'rgba(255, 255, 255, 0.1)',
                 backdropFilter: 'blur(10px)',
                 fontWeight: '500',
+                fontSize: windowWidth <= 768 ? '10px' : '14px',
                 mt: 2,
                 transition: 'all 0.3s ease',
                 '&:hover': {
@@ -166,21 +198,21 @@ const DashboardPage = () => {
           </div>
 
           {/* Summary Cards */}
-          <div style={styles.summarySection}>
-            <h3 style={styles.sectionTitle}>📈 Summary Overview</h3>
+          <div style={{...styles.summarySection, padding: windowWidth <= 768 ? '20px' : '32px'}}>
+            <h3 style={{...styles.sectionTitle, fontSize: windowWidth <= 768 ? '22px' : '28px'}}>📈 Summary Overview</h3>
             <div style={styles.cardsGrid}>
               {summaryCards.map((card, idx) => (
                 <Grow in timeout={400 + idx * 150} key={card.title}>
-                  <div style={styles.summaryCard} className="hover-lift">
+                  <div style={{...styles.summaryCard, padding: windowWidth <= 768 ? '20px' : '32px'}} className="hover-lift">
                     <div style={{...styles.cardIcon, background: card.gradient}}>
                       <span style={styles.cardIconEmoji}>{card.icon}</span>
                     </div>
                     <div style={styles.cardContent}>
-                      <h4 style={styles.cardTitle}>{card.title}</h4>
-                      <div style={styles.cardValue}>
+                      <h4 style={{...styles.cardTitle, fontSize: windowWidth <= 768 ? '14px' : '16px'}}>{card.title}</h4>
+                      <div style={{...styles.cardValue, fontSize: windowWidth <= 768 ? '28px' : '36px'}}>
                         {animateNumbers ? card.value.toLocaleString() : '0'}
                       </div>
-                      <p style={styles.cardDescription}>{card.description}</p>
+                      <p style={{...styles.cardDescription, fontSize: windowWidth <= 768 ? '12px' : '14px'}}>{card.description}</p>
                     </div>
                     <div style={{...styles.cardAccent, background: card.gradient}}></div>
                   </div>
@@ -190,18 +222,22 @@ const DashboardPage = () => {
           </div>
 
           {/* Charts Section */}
-          <div style={styles.chartsSection}>
-            <h3 style={styles.sectionTitle}>📊 Data Visualization</h3>
-            <div style={styles.chartsGrid}>
+          <div style={{...styles.chartsSection, padding: windowWidth <= 768 ? '20px' : '32px'}}>
+            <h3 style={{...styles.sectionTitle, fontSize: windowWidth <= 768 ? '22px' : '28px'}}>📊 Data Visualization</h3>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(auto-fit, minmax(400px, 1fr))',
+              gap: windowWidth <= 768 ? '20px' : '32px'
+            }}>
               {/* Bar Chart */}
               <Slide in direction="up" timeout={600}>
-                <div style={styles.chartCard} className="hover-lift">
+                <div style={{...styles.chartCard, padding: windowWidth <= 768 ? '16px' : '24px'}} className="hover-lift" ref={chartRef}>
                   <div style={styles.chartHeader}>
                     <div style={styles.chartHeaderLeft}>
                       <span style={styles.chartIcon}>📊</span>
                       <div>
-                        <h4 style={styles.chartTitle}>Gender Distribution</h4>
-                        <p style={styles.chartSubtitle}>Comparative view by gender</p>
+                        <h4 style={{...styles.chartTitle, fontSize: windowWidth <= 768 ? '16px' : '20px'}}>Gender Distribution</h4>
+                        <p style={{...styles.chartSubtitle, fontSize: windowWidth <= 768 ? '12px' : '14px'}}>Comparative view by gender</p>
                       </div>
                     </div>
                     <Chip
@@ -210,7 +246,8 @@ const DashboardPage = () => {
                       sx={{
                         background: 'linear-gradient(135deg, #667eea, #764ba2)',
                         color: 'white',
-                        fontWeight: '600'
+                        fontWeight: '600',
+                        fontSize: windowWidth <= 768 ? '10px' : '12px'
                       }}
                     />
                   </div>
@@ -219,25 +256,25 @@ const DashboardPage = () => {
                       xAxis={[{
                         scaleType: 'band',
                         data: barData.map((item) => item.label),
-                        tickLabelStyle: { fontSize: '14px', fontWeight: '500' }
+                        tickLabelStyle: { fontSize: windowWidth <= 768 ? '12px' : '14px', fontWeight: '500' }
                       }]}
                       series={[{
                         data: barData.map((item) => item.value),
                         color: '#667eea'
                       }]}
-                      width={400}
-                      height={280}
-                      margin={{ left: 60, right: 60, top: 40, bottom: 60 }}
+                      width={getChartWidth()}
+                      height={getChartHeight()}
+                      margin={getChartMargins()}
                     />
                   </div>
                   <div style={styles.chartStats}>
                     <div style={styles.statItem}>
-                      <span style={styles.statLabel}>Male</span>
-                      <span style={styles.statValue}>{summary.male}</span>
+                      <span style={{...styles.statLabel, fontSize: windowWidth <= 768 ? '10px' : '12px'}}>Male</span>
+                      <span style={{...styles.statValue, fontSize: windowWidth <= 768 ? '16px' : '20px'}}>{summary.male}</span>
                     </div>
                     <div style={styles.statItem}>
-                      <span style={styles.statLabel}>Female</span>
-                      <span style={styles.statValue}>{summary.female}</span>
+                      <span style={{...styles.statLabel, fontSize: windowWidth <= 768 ? '10px' : '12px'}}>Female</span>
+                      <span style={{...styles.statValue, fontSize: windowWidth <= 768 ? '16px' : '20px'}}>{summary.female}</span>
                     </div>
                   </div>
                 </div>
@@ -245,13 +282,13 @@ const DashboardPage = () => {
 
               {/* Pie Chart */}
               <Slide in direction="up" timeout={750}>
-                <div style={styles.chartCard} className="hover-lift">
+                <div style={{...styles.chartCard, padding: windowWidth <= 768 ? '16px' : '24px'}} className="hover-lift">
                   <div style={styles.chartHeader}>
                     <div style={styles.chartHeaderLeft}>
                       <span style={styles.chartIcon}>🥧</span>
                       <div>
-                        <h4 style={styles.chartTitle}>Gender Breakdown</h4>
-                        <p style={styles.chartSubtitle}>Proportional distribution</p>
+                        <h4 style={{...styles.chartTitle, fontSize: windowWidth <= 768 ? '16px' : '20px'}}>Gender Breakdown</h4>
+                        <p style={{...styles.chartSubtitle, fontSize: windowWidth <= 768 ? '12px' : '14px'}}>Proportional distribution</p>
                       </div>
                     </div>
                     <Chip
@@ -260,7 +297,8 @@ const DashboardPage = () => {
                       sx={{
                         background: 'linear-gradient(135deg, #f093fb, #f5576c)',
                         color: 'white',
-                        fontWeight: '600'
+                        fontWeight: '600',
+                        fontSize: windowWidth <= 768 ? '10px' : '12px'
                       }}
                     />
                   </div>
@@ -271,19 +309,23 @@ const DashboardPage = () => {
                         highlightScope: { faded: 'global', highlighted: 'item' },
                         faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
                       }]}
-                      width={400}
-                      height={280}
+                      width={getChartWidth()}
+                      height={getChartHeight()}
                       colors={['#4facfe', '#f093fb']}
                     />
                   </div>
                   <div style={styles.chartLegend}>
                     <div style={styles.legendItem}>
                       <div style={{...styles.legendColor, background: '#4facfe'}}></div>
-                      <span style={styles.legendLabel}>Male ({calculatePercentage(summary.male, summary.total)}%)</span>
+                      <span style={{...styles.legendLabel, fontSize: windowWidth <= 768 ? '12px' : '14px'}}>
+                        Male ({calculatePercentage(summary.male, summary.total)}%)
+                      </span>
                     </div>
                     <div style={styles.legendItem}>
                       <div style={{...styles.legendColor, background: '#f093fb'}}></div>
-                      <span style={styles.legendLabel}>Female ({calculatePercentage(summary.female, summary.total)}%)</span>
+                      <span style={{...styles.legendLabel, fontSize: windowWidth <= 768 ? '12px' : '14px'}}>
+                        Female ({calculatePercentage(summary.female, summary.total)}%)
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -292,32 +334,32 @@ const DashboardPage = () => {
           </div>
 
           {/* Insights Section */}
-          <div style={styles.insightsSection}>
-            <h3 style={styles.sectionTitle}>💡 Key Insights</h3>
+          <div style={{...styles.insightsSection, padding: windowWidth <= 768 ? '20px' : '32px'}}>
+            <h3 style={{...styles.sectionTitle, fontSize: windowWidth <= 768 ? '22px' : '28px'}}>💡 Key Insights</h3>
             <div style={styles.insightsGrid}>
-              <div style={styles.insightCard}>
-                <span style={styles.insightIcon}>📈</span>
+              <div style={{...styles.insightCard, padding: windowWidth <= 768 ? '16px' : '24px'}}>
+                <span style={{...styles.insightIcon, fontSize: windowWidth <= 768 ? '24px' : '32px'}}>📈</span>
                 <div style={styles.insightContent}>
-                  <h4 style={styles.insightTitle}>Total Records</h4>
-                  <p style={styles.insightText}>
+                  <h4 style={{...styles.insightTitle, fontSize: windowWidth <= 768 ? '16px' : '18px'}}>Total Records</h4>
+                  <p style={{...styles.insightText, fontSize: windowWidth <= 768 ? '12px' : '14px'}}>
                     Currently managing {summary.total.toLocaleString()} NIC records in the system
                   </p>
                 </div>
               </div>
-              <div style={styles.insightCard}>
-                <span style={styles.insightIcon}>⚖️</span>
+              <div style={{...styles.insightCard, padding: windowWidth <= 768 ? '16px' : '24px'}}>
+                <span style={{...styles.insightIcon, fontSize: windowWidth <= 768 ? '24px' : '32px'}}>⚖️</span>
                 <div style={styles.insightContent}>
-                  <h4 style={styles.insightTitle}>Gender Balance</h4>
-                  <p style={styles.insightText}>
-                    {summary.male > summary.female ? 'Male' : 'Female'} records are {Math.abs(calculatePercentage(summary.male, summary.total) - calculatePercentage(summary.female, summary.total)).toFixed(1)}% higher // than the other
+                  <h4 style={{...styles.insightTitle, fontSize: windowWidth <= 768 ? '16px' : '18px'}}>Gender Balance</h4>
+                  <p style={{...styles.insightText, fontSize: windowWidth <= 768 ? '12px' : '14px'}}>
+                    {summary.male > summary.female ? 'Male' : 'Female'} records are {Math.abs(calculatePercentage(summary.male, summary.total) - calculatePercentage(summary.female, summary.total)).toFixed(1)}% higher than the other
                   </p>
                 </div>
               </div>
-              <div style={styles.insightCard}>
-                <span style={styles.insightIcon}>��</span>
+              <div style={{...styles.insightCard, padding: windowWidth <= 768 ? '16px' : '24px'}}>
+                <span style={{...styles.insightIcon, fontSize: windowWidth <= 768 ? '24px' : '32px'}}>✅</span>
                 <div style={styles.insightContent}>
-                  <h4 style={styles.insightTitle}>Data Quality</h4>
-                  <p style={styles.insightText}>
+                  <h4 style={{...styles.insightTitle, fontSize: windowWidth <= 768 ? '16px' : '18px'}}>Data Quality</h4>
+                  <p style={{...styles.insightText, fontSize: windowWidth <= 768 ? '12px' : '14px'}}>
                     All records processed successfully with complete demographic data
                   </p>
                 </div>
@@ -390,10 +432,14 @@ const DashboardPage = () => {
           animation: slideInLeft 0.5s ease-out;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
           .fade-in-up {
             animation: fadeInUp 0.4s ease-out;
+          }
+
+          .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
           }
         }
       `}</style>
@@ -550,7 +596,7 @@ const styles = {
   },
   cardsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
     gap: '24px',
   },
   summaryCard: {
@@ -613,11 +659,6 @@ const styles = {
     backdropFilter: 'blur(20px)',
     border: '1px solid rgba(255, 255, 255, 0.2)',
   },
-  chartsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
-    gap: '32px',
-  },
   chartCard: {
     background: 'rgba(255, 255, 255, 0.95)',
     borderRadius: '20px',
@@ -655,6 +696,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     marginBottom: '20px',
+    overflow: 'hidden',
   },
   chartStats: {
     display: 'flex',
@@ -684,6 +726,7 @@ const styles = {
     gap: '24px',
     paddingTop: '16px',
     borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+    flexWrap: 'wrap',
   },
   legendItem: {
     display: 'flex',
@@ -710,7 +753,7 @@ const styles = {
   },
   insightsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
     gap: '24px',
   },
   insightCard: {
@@ -724,10 +767,6 @@ const styles = {
     transition: 'all 0.3s ease',
     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
     backdropFilter: 'blur(15px)',
-    '&:hover': {
-      transform: 'translateY(-4px)',
-      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
-    }
   },
   insightIcon: {
     fontSize: '32px',
@@ -764,10 +803,6 @@ const styles = {
     backdropFilter: 'blur(10px)',
     border: '1px solid rgba(255, 255, 255, 0.2)',
     transition: 'all 0.3s ease',
-    '&:hover': {
-      background: 'rgba(255, 255, 255, 0.2)',
-      transform: 'translateY(-2px)',
-    }
   },
   quickStatIcon: {
     fontSize: '20px',

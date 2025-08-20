@@ -55,7 +55,7 @@ const LoginPage = () => {
       backgroundImage: `url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
-      animation: 'slowRotate 300s linear infinite', // Changed to 5 minutes for subtle rotation
+      animation: 'slowRotate 600s linear infinite', // Changed to 5 minutes for subtle rotation
       zIndex: -5,
     }} />
   );
