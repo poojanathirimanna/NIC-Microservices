@@ -45,8 +45,25 @@ const LoginPage = () => {
   const goToRegister = () => navigate('/register', { state: { fromLogin: true } });
   const goToResetPassword = () => navigate('/reset-password', { state: { fromLogin: true } });
 
+  const RotatingBackground = () => (
+    <div style={{
+      position: 'fixed',
+      top: '-50%',
+      left: '-50%',
+      width: '200%',
+      height: '250%',
+      backgroundImage: `url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      animation: 'slowRotate 600s linear infinite',
+      zIndex: -5,
+      border: '5px solid red', // Temporary border to see if the div is working
+    }} />
+  );
+
   return (
     <div style={styles.container}>
+      <RotatingBackground />
       {/* Background Pattern */}
       <div style={styles.backgroundPattern}></div>
 
@@ -250,6 +267,16 @@ const LoginPage = () => {
           }
         }
 
+        /* Slow Rotating Background Animation */
+        @keyframes slowRotate {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
         .fade-in-up {
           animation: fadeInUp 0.8s ease-out;
         }
@@ -371,13 +398,8 @@ const LoginPage = () => {
 const styles = {
   container: {
     minHeight: '100vh',
-    background: `
-      linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.80) 25%, rgba(51, 65, 85, 0.75) 50%, rgba(71, 85, 105, 0.70) 75%, rgba(100, 116, 139, 0.65) 100%),
-      url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')
-    `,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundAttachment: 'fixed',
+    background: `linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.80) 25%, rgba(51, 65, 85, 0.75) 50%, rgba(71, 85, 105, 0.70) 75%, rgba(100, 116, 139, 0.65) 100%)`,
+    // Removed the static background image that was conflicting
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
