@@ -71,12 +71,29 @@ const ResetPasswordPage = () => {
       setError(err.response?.data?.message || 'Reset failed. Please check username/email.');
       setIsLoading(false);
     }
+
   };
 
   const goToLogin = () => navigate('/login');
 
+  const RotatingBackground = () => (
+    <div style={{
+      position: 'fixed',
+      top: '-50%',
+      left: '-50%',
+      width: '200%',
+      height: '250%',
+      backgroundImage: `url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      animation: 'slowRotate 300s linear infinite',
+      zIndex: -5,
+    }} />
+  );
+
   return (
     <div style={styles.container}>
+      <RotatingBackground />
       {/* Background Pattern */}
       <div style={styles.backgroundPattern}></div>
 
@@ -302,6 +319,16 @@ const ResetPasswordPage = () => {
           }
         }
 
+        /* Slow Rotating Background Animation */
+        @keyframes slowRotate {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
         .fade-in-up {
           animation: fadeInUp 0.8s ease-out;
         }
@@ -413,13 +440,8 @@ const ResetPasswordPage = () => {
 const styles = {
   container: {
     minHeight: '100vh',
-    background: `
-      linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.80) 25%, rgba(51, 65, 85, 0.75) 50%, rgba(71, 85, 105, 0.70) 75%, rgba(100, 116, 139, 0.65) 100%),
-      url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')
-    `,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundAttachment: 'fixed',
+    background: `linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.80) 25%, rgba(51, 65, 85, 0.75) 50%, rgba(71, 85, 105, 0.70) 75%, rgba(100, 116, 139, 0.65) 100%)`,
+    // Removed the static background image that was conflicting with the rotating background
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -435,13 +457,13 @@ const styles = {
     width: '100%',
     height: '100%',
     background: `
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.02) 2px, transparent 2px)
+      linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+      linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+      radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.005) 2px, transparent 2px)
     `,
     backgroundSize: '60px 60px, 60px 60px, 100px 100px',
     pointerEvents: 'none',
-    opacity: 0.6,
+    opacity: 0.1, // Reduced from 0.6 to make grid almost invisible
   },
   resetWrapper: {
     width: '100%',

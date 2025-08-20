@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardContent, Grid, Grow, Slide, Chip, Avatar } from '@mui/material';
+import { Box, Typography, Card, CardContent, Grid, Grow, Slide, Chip, Avatar, LinearProgress } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import dashboardApi from '../services/dashboardApi';
@@ -9,6 +9,7 @@ const DashboardPage = () => {
   const [summary, setSummary] = useState({ total: 0, male: 0, female: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [animateNumbers, setAnimateNumbers] = useState(false);
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -22,6 +23,8 @@ const DashboardPage = () => {
           female: data.femaleCount,
         });
         setError('');
+        // Trigger number animation after data loads
+        setTimeout(() => setAnimateNumbers(true), 500);
       } catch (err) {
         console.error('Error fetching dashboard summary:', err);
         setError('Failed to load dashboard data');
@@ -80,8 +83,24 @@ const DashboardPage = () => {
         <Navbar />
         <div style={styles.wrapper}>
           <div style={styles.loadingContainer}>
-            <div style={styles.spinner}>⟳</div>
+            <div style={styles.modernSpinner}>
+              <div style={styles.spinnerRing}></div>
+              <div style={styles.spinnerInner}>📊</div>
+            </div>
             <h2 style={styles.loadingText}>Loading Dashboard...</h2>
+            <div style={styles.loadingSubtext}>Fetching real-time data</div>
+            <div style={styles.loadingProgress}>
+              <LinearProgress
+                sx={{
+                  width: '200px',
+                  borderRadius: '4px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: '#4caf50',
+                  }
+                }}
+              />
+            </div>
           </div>
         </div>
       </>
@@ -110,13 +129,23 @@ const DashboardPage = () => {
         <div style={styles.container}>
           {/* Header Section */}
           <div style={styles.header}>
-            <div style={styles.headerIcon}>
+            <div style={styles.headerIcon} className="pulse-animation">
               <span style={styles.iconEmoji}>📊</span>
             </div>
-            <h1 style={styles.title}>Dashboard Analytics</h1>
-            <p style={styles.subtitle}>
-              Overview of NIC records and demographic insights
+            <h1 style={styles.title} className="fade-in-up">Dashboard Analytics</h1>
+            <p style={styles.subtitle} className="fade-in-up">
+              Real-time overview of NIC records and demographic insights
             </p>
+            <div style={styles.headerStats}>
+              <div style={styles.quickStat}>
+                <span style={styles.quickStatIcon}>⚡</span>
+                <span style={styles.quickStatText}>Live Data</span>
+              </div>
+              <div style={styles.quickStat}>
+                <span style={styles.quickStatIcon}>🔄</span>
+                <span style={styles.quickStatText}>Auto-Updated</span>
+              </div>
+            </div>
             <Chip
               label={`Last Updated: ${new Date().toLocaleString()}`}
               variant="outlined"
@@ -126,7 +155,12 @@ const DashboardPage = () => {
                 background: 'rgba(255, 255, 255, 0.1)',
                 backdropFilter: 'blur(10px)',
                 fontWeight: '500',
-                mt: 2
+                mt: 2,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  transform: 'translateY(-2px)',
+                }
               }}
             />
           </div>
@@ -143,7 +177,9 @@ const DashboardPage = () => {
                     </div>
                     <div style={styles.cardContent}>
                       <h4 style={styles.cardTitle}>{card.title}</h4>
-                      <div style={styles.cardValue}>{card.value.toLocaleString()}</div>
+                      <div style={styles.cardValue}>
+                        {animateNumbers ? card.value.toLocaleString() : '0'}
+                      </div>
                       <p style={styles.cardDescription}>{card.description}</p>
                     </div>
                     <div style={{...styles.cardAccent, background: card.gradient}}></div>
@@ -273,12 +309,12 @@ const DashboardPage = () => {
                 <div style={styles.insightContent}>
                   <h4 style={styles.insightTitle}>Gender Balance</h4>
                   <p style={styles.insightText}>
-                    {summary.male > summary.female ? 'Male' : 'Female'} records are {Math.abs(calculatePercentage(summary.male, summary.total) - calculatePercentage(summary.female, summary.total)).toFixed(1)}% higher
+                    {summary.male > summary.female ? 'Male' : 'Female'} records are {Math.abs(calculatePercentage(summary.male, summary.total) - calculatePercentage(summary.female, summary.total)).toFixed(1)}% higher // than the other
                   </p>
                 </div>
               </div>
               <div style={styles.insightCard}>
-                <span style={styles.insightIcon}>🎯</span>
+                <span style={styles.insightIcon}>��</span>
                 <div style={styles.insightContent}>
                   <h4 style={styles.insightTitle}>Data Quality</h4>
                   <p style={styles.insightText}>
@@ -430,15 +466,49 @@ const styles = {
     minHeight: '60vh',
     color: 'white',
   },
-  spinner: {
-    fontSize: '48px',
-    animation: 'spin 1s linear infinite',
+  modernSpinner: {
+    position: 'relative',
+    width: '64px',
+    height: '64px',
     marginBottom: '20px',
+  },
+  spinnerRing: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: '50%',
+    border: '8px solid rgba(255, 255, 255, 0.3)',
+    animation: 'spin 1s linear infinite',
+  },
+  spinnerInner: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '24px',
+    color: '#4caf50',
+    fontWeight: '700',
   },
   loadingText: {
     fontSize: '24px',
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.9)',
+  },
+  loadingSubtext: {
+    fontSize: '14px',
+    color: 'rgba(255, 255, 255, 0.8)',
+    margin: '8px 0 16px 0',
+  },
+  loadingProgress: {
+    width: '200px',
+    borderRadius: '4px',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    '& .MuiLinearProgress-bar': {
+      backgroundColor: '#4caf50',
+    }
   },
   errorContainer: {
     display: 'flex',
@@ -677,6 +747,36 @@ const styles = {
     color: 'rgba(255, 255, 255, 0.8)',
     margin: 0,
     lineHeight: '1.5',
+  },
+  headerStats: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '24px',
+    marginTop: '16px',
+  },
+  quickStat: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '8px 16px',
+    borderRadius: '16px',
+    background: 'rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      background: 'rgba(255, 255, 255, 0.2)',
+      transform: 'translateY(-2px)',
+    }
+  },
+  quickStatIcon: {
+    fontSize: '20px',
+    color: '#4caf50',
+  },
+  quickStatText: {
+    fontSize: '14px',
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '500',
   },
 };
 

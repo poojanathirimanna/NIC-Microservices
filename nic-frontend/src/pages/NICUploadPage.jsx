@@ -358,31 +358,31 @@ const styles = {
     color: 'rgba(255, 255, 255, 0.8)',
   },
   uploadSection: {
-    background: 'rgba(255, 255, 255, 0.98)',
+    background: 'rgba(255, 255, 255, 0.1)',
     borderRadius: '24px',
     padding: '40px',
     boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)',
     backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
   },
   uploadArea: {
-    border: '3px dashed #cbd5e1',
+    border: '3px dashed rgba(255, 255, 255, 0.4)',
     borderRadius: '16px',
     padding: '48px 24px',
     textAlign: 'center',
     cursor: 'pointer',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    background: '#f8fafc',
+    background: 'rgba(255, 255, 255, 0.05)',
     marginBottom: '24px',
   },
   uploadAreaActive: {
-    borderColor: '#3b82f6',
-    background: '#eff6ff',
+    borderColor: 'rgba(59, 130, 246, 0.8)',
+    background: 'rgba(59, 130, 246, 0.1)',
     transform: 'scale(1.02)',
   },
   uploadAreaWithFiles: {
-    borderColor: '#10b981',
-    background: '#f0fdf4',
+    borderColor: 'rgba(16, 185, 129, 0.8)',
+    background: 'rgba(16, 185, 129, 0.1)',
   },
   hiddenInput: {
     display: 'none',
@@ -409,12 +409,12 @@ const styles = {
   uploadTitle: {
     fontSize: '24px',
     fontWeight: '700',
-    color: '#1e293b',
+    color: '#ffffff',
     margin: 0,
   },
   uploadText: {
     fontSize: '16px',
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.8)',
     margin: 0,
   },
   uploadRequirements: {
@@ -425,18 +425,19 @@ const styles = {
   },
   requirement: {
     fontSize: '14px',
-    color: '#475569',
-    background: 'rgba(51, 65, 85, 0.1)',
+    color: 'rgba(255, 255, 255, 0.9)',
+    background: 'rgba(255, 255, 255, 0.15)',
     padding: '8px 16px',
     borderRadius: '20px',
     fontWeight: '500',
   },
   fileList: {
-    background: '#f8fafc',
+    background: 'rgba(255, 255, 255, 0.15)',
     borderRadius: '16px',
     padding: '24px',
     marginBottom: '24px',
-    border: '1px solid #e2e8f0',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    backdropFilter: 'blur(10px)',
   },
   fileListHeader: {
     display: 'flex',
@@ -447,7 +448,7 @@ const styles = {
   fileListTitle: {
     fontSize: '18px',
     fontWeight: '600',
-    color: '#1e293b',
+    color: '#ffffff',
   },
   validBadge: {
     background: '#10b981',
@@ -464,11 +465,12 @@ const styles = {
     marginBottom: '16px',
   },
   fileCard: {
-    background: 'white',
+    background: 'rgba(255, 255, 255, 0.2)',
     borderRadius: '12px',
     padding: '16px',
-    border: '1px solid #e2e8f0',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
     transition: 'all 0.3s ease',
+    backdropFilter: 'blur(10px)',
     '&:hover': {
       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
       transform: 'translateY(-2px)',
@@ -486,7 +488,7 @@ const styles = {
   fileName: {
     fontSize: '14px',
     fontWeight: '600',
-    color: '#1e293b',
+    color: '#ffffff',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
@@ -499,15 +501,16 @@ const styles = {
   },
   fileSize: {
     fontSize: '12px',
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   fileType: {
-    background: '#dbeafe',
-    color: '#1e40af',
+    background: 'rgba(59, 130, 246, 0.2)',
+    color: '#ffffff',
     padding: '2px 8px',
     borderRadius: '6px',
     fontSize: '10px',
     fontWeight: '600',
+    border: '1px solid rgba(59, 130, 246, 0.3)',
   },
   warningCard: {
     background: '#fef3c7',
@@ -607,12 +610,12 @@ const styles = {
     fontWeight: '500',
   },
   summarySection: {
-    background: 'rgba(255, 255, 255, 0.98)',
+    background: 'rgba(255, 255, 255, 0.1)',
     borderRadius: '24px',
     padding: '32px',
     boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)',
     backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
   },
   summaryHeader: {
     display: 'flex',
@@ -626,7 +629,7 @@ const styles = {
   summaryTitle: {
     fontSize: '24px',
     fontWeight: '700',
-    color: '#1e293b',
+    color: '#ffffff',
     margin: 0,
   },
   summaryGrid: {
@@ -636,15 +639,16 @@ const styles = {
     marginBottom: '24px',
   },
   summaryCard: {
-    background: '#f8fafc',
+    background: 'rgba(255, 255, 255, 0.15)',
     borderRadius: '16px',
     padding: '24px',
-    border: '1px solid #e2e8f0',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     gap: '8px',
     transition: 'all 0.3s ease',
+    backdropFilter: 'blur(10px)',
     '&:hover': {
       transform: 'translateY(-4px)',
       boxShadow: '0 12px 30px rgba(0, 0, 0, 0.1)',
@@ -655,13 +659,13 @@ const styles = {
   },
   summaryCardLabel: {
     fontSize: '14px',
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontWeight: '500',
   },
   summaryCardValue: {
     fontSize: '28px',
     fontWeight: '700',
-    color: '#1e293b',
+    color: '#ffffff',
   },
   successMessage: {
     background: '#f0fdf4',
@@ -707,12 +711,12 @@ const styles = {
     fontWeight: '500',
   },
   resultsSection: {
-    background: 'rgba(255, 255, 255, 0.98)',
+    background: 'rgba(255, 255, 255, 0.1)',
     borderRadius: '24px',
     padding: '32px',
     boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)',
     backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
   },
   resultsHeader: {
     display: 'flex',
@@ -728,7 +732,7 @@ const styles = {
   resultsTitle: {
     fontSize: '24px',
     fontWeight: '700',
-    color: '#1e293b',
+    color: '#ffffff',
     margin: 0,
     flex: 1,
   },

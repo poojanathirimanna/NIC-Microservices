@@ -486,13 +486,13 @@ const styles = {
     width: '100%',
     height: '100%',
     background: `
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.02) 2px, transparent 2px)
+      linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+      linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+      radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.005) 2px, transparent 2px)
     `,
     backgroundSize: '60px 60px, 60px 60px, 100px 100px',
     pointerEvents: 'none',
-    opacity: 0.6,
+    opacity: 0.1, // Reduced from 0.6 to make grid almost invisible
   },
   registerWrapper: {
     width: '100%',

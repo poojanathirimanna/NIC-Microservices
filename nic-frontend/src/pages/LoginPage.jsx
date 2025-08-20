@@ -55,9 +55,8 @@ const LoginPage = () => {
       backgroundImage: `url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
-      animation: 'slowRotate 600s linear infinite',
+      animation: 'slowRotate 300s linear infinite', // Changed to 5 minutes for subtle rotation
       zIndex: -5,
-      border: '5px solid red', // Temporary border to see if the div is working
     }} />
   );
 
@@ -415,13 +414,13 @@ const styles = {
     width: '100%',
     height: '100%',
     background: `
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.02) 2px, transparent 2px)
+      linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+      linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+      radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.005) 2px, transparent 2px)
     `,
     backgroundSize: '60px 60px, 60px 60px, 100px 100px',
     pointerEvents: 'none',
-    opacity: 0.6,
+    opacity: 0.1, // Reduced from 0.6 to make grid almost invisible
   },
   loginWrapper: {
     width: '100%',
