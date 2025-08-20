@@ -1,6 +1,13 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { uploadNICFiles } from '../services/nicService';
 import Navbar from '../components/Navbar';
+import UploadHeader from '../components/upload/UploadHeader';
+import FileUploadArea from '../components/upload/FileUploadArea';
+import FileList from '../components/upload/FileList';
+import ActionButtons from '../components/upload/ActionButtons';
+import ErrorMessage from '../components/upload/ErrorMessage';
+import ProcessingSummary from '../components/upload/ProcessingSummary';
+import ResultsTable from '../components/upload/ResultsTable';
 
 const NICUploadPage = () => {
   const [files, setFiles] = useState([]);
@@ -119,223 +126,80 @@ const NICUploadPage = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const RotatingBackground = () => (
+    <div style={{
+      position: 'fixed',
+      top: '-50%',
+      left: '-50%',
+      width: '200%',
+      height: '250%',
+      backgroundImage: `url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      animation: 'slowRotate 300s linear infinite',
+      zIndex: -5,
+    }} />
+  );
+
   return (
     <>
       <Navbar />
       <div style={styles.wrapper}>
+        <RotatingBackground />
         <div style={styles.container}>
           {/* Header Section */}
-          <div style={styles.header}>
-            <div style={styles.headerIcon}>
-              <span style={styles.iconEmoji}>📂</span>
-            </div>
-            <h1 style={styles.title}>NIC CSV Upload</h1>
-            <p style={styles.subtitle}>
-              Upload exactly 4 CSV files for validation and processing
-            </p>
-          </div>
+          <UploadHeader styles={styles} />
 
           {/* Upload Section */}
           <div style={styles.uploadSection}>
-            <div
-              style={{
-                ...styles.uploadArea,
-                ...(dragActive ? styles.uploadAreaActive : {}),
-                ...(files.length > 0 ? styles.uploadAreaWithFiles : {})
-              }}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept=".csv,text/csv"
-                onChange={handleFileChange}
-                style={styles.hiddenInput}
-              />
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".csv,text/csv"
+              onChange={handleFileChange}
+              style={styles.hiddenInput}
+            />
 
-              <div style={styles.uploadContent}>
-                <div style={styles.uploadIcon}>
-                  {files.length > 0 ? (
-                    <span style={styles.uploadIconEmoji}>✅</span>
-                  ) : (
-                    <span style={styles.uploadIconEmoji}>☁️</span>
-                  )}
-                </div>
-                <h3 style={styles.uploadTitle}>
-                  {files.length > 0 ? 'Files Selected' : 'Drop your CSV files here'}
-                </h3>
-                <p style={styles.uploadText}>
-                  {files.length > 0
-                    ? `${files.length}/4 files selected`
-                    : 'or click to browse'
-                  }
-                </p>
-                <div style={styles.uploadRequirements}>
-                  <span style={styles.requirement}>📋 Exactly 4 CSV files</span>
-                  <span style={styles.requirement}>📊 .csv format only</span>
-                </div>
-              </div>
-            </div>
+            <FileUploadArea
+              styles={styles}
+              dragActive={dragActive}
+              files={files}
+              handleDrag={handleDrag}
+              handleDrop={handleDrop}
+              fileInputRef={fileInputRef}
+            />
 
-            {/* File List */}
-            {files.length > 0 && (
-              <div style={styles.fileList}>
-                <div style={styles.fileListHeader}>
-                  <span style={styles.fileListTitle}>📁 Selected Files ({files.length}/4)</span>
-                  {isValidSelection && (
-                    <span style={styles.validBadge}>✅ Valid Selection</span>
-                  )}
-                </div>
-                <div style={styles.fileGrid}>
-                  {files.map((file, idx) => (
-                    <div key={idx} style={styles.fileCard}>
-                      <div style={styles.fileCardHeader}>
-                        <span style={styles.fileIcon}>📄</span>
-                        <span style={styles.fileName}>{file.name}</span>
-                      </div>
-                      <div style={styles.fileDetails}>
-                        <span style={styles.fileSize}>{formatFileSize(file.size)}</span>
-                        <span style={styles.fileType}>CSV</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {!isValidSelection && (
-                  <div style={styles.warningCard}>
-                    <span style={styles.warningIcon}>⚠��</span>
-                    <span style={styles.warningText}>Need exactly 4 CSV files to proceed</span>
-                  </div>
-                )}
-              </div>
-            )}
+            <FileList
+              styles={styles}
+              files={files}
+              isValidSelection={isValidSelection}
+              formatFileSize={formatFileSize}
+            />
 
-            {/* Action Buttons */}
-            <div style={styles.actionButtons}>
-              <button
-                onClick={handleUpload}
-                style={{
-                  ...styles.primaryButton,
-                  ...(isValidSelection ? {} : styles.disabledButton),
-                  ...(isUploading ? styles.loadingButton : {})
-                }}
-                disabled={!isValidSelection || isUploading}
-              >
-                {isUploading ? (
-                  <>
-                    <span style={styles.spinner}>⟳</span>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <span style={styles.buttonIcon}>🚀</span>
-                    Upload & Validate
-                  </>
-                )}
-              </button>
+            <ActionButtons
+              styles={styles}
+              handleUpload={handleUpload}
+              handleClear={handleClear}
+              isValidSelection={isValidSelection}
+              isUploading={isUploading}
+            />
 
-              <button
-                onClick={handleClear}
-                style={styles.secondaryButton}
-                disabled={isUploading}
-              >
-                <span style={styles.buttonIcon}>🗑️</span>
-                Clear All
-              </button>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div style={styles.errorCard}>
-                <span style={styles.errorIcon}>❌</span>
-                <span style={styles.errorText}>{error}</span>
-              </div>
-            )}
+            <ErrorMessage
+              styles={styles}
+              error={error}
+            />
           </div>
 
-          {/* Response Summary */}
-          {responseInfo && (
-            <div style={styles.summarySection}>
-              <div style={styles.summaryHeader}>
-                <span style={styles.summaryIcon}>📊</span>
-                <h3 style={styles.summaryTitle}>Processing Summary</h3>
-              </div>
-              <div style={styles.summaryGrid}>
-                <div style={styles.summaryCard}>
-                  <span style={styles.summaryCardIcon}>📁</span>
-                  <span style={styles.summaryCardLabel}>Files Processed</span>
-                  <span style={styles.summaryCardValue}>{responseInfo.filesProcessed}</span>
-                </div>
-                <div style={styles.summaryCard}>
-                  <span style={styles.summaryCardIcon}>✅</span>
-                  <span style={styles.summaryCardLabel}>Records Inserted</span>
-                  <span style={styles.summaryCardValue}>{responseInfo.inserted}</span>
-                </div>
-                <div style={styles.summaryCard}>
-                  <span style={styles.summaryCardIcon}>⏭️</span>
-                  <span style={styles.summaryCardLabel}>Records Skipped</span>
-                  <span style={styles.summaryCardValue}>{responseInfo.skipped}</span>
-                </div>
-              </div>
-              <div style={styles.successMessage}>
-                <span style={styles.successIcon}>🎉</span>
-                <span style={styles.successText}>{responseInfo.message}</span>
-              </div>
-              {responseInfo.skippedNICs?.length > 0 && (
-                <div style={styles.skippedSection}>
-                  <h4 style={styles.skippedTitle}>⚠️ Skipped NICs:</h4>
-                  <div style={styles.skippedList}>
-                    {responseInfo.skippedNICs.map((nic, idx) => (
-                      <span key={idx} style={styles.skippedItem}>{nic}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          <ProcessingSummary
+            styles={styles}
+            responseInfo={responseInfo}
+          />
 
-          {/* Results Table */}
-          {results.length > 0 && (
-            <div style={styles.resultsSection}>
-              <div style={styles.resultsHeader}>
-                <span style={styles.resultsIcon}>📋</span>
-                <h3 style={styles.resultsTitle}>Validation Results</h3>
-                <span style={styles.resultsBadge}>{results.length} Records</span>
-              </div>
-              <div style={styles.tableContainer}>
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th style={styles.th}>NIC Number</th>
-                      <th style={styles.th}>Date of Birth</th>
-                      <th style={styles.th}>Age</th>
-                      <th style={styles.th}>Gender</th>
-                      <th style={styles.th}>Source File</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {results.map((r, idx) => (
-                      <tr key={idx} style={styles.tr}>
-                        <td style={styles.td}>{r.nicNumber}</td>
-                        <td style={styles.td}>{r.birthday}</td>
-                        <td style={styles.td}>{r.age}</td>
-                        <td style={{...styles.td, ...styles.genderCell}}>
-                          <span style={r.gender === 'Male' ? styles.maleTag : styles.femaleTag}>
-                            {r.gender}
-                          </span>
-                        </td>
-                        <td style={styles.td}>{r.fileName}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+          <ResultsTable
+            styles={styles}
+            results={results}
+          />
         </div>
       </div>
 
@@ -383,6 +247,16 @@ const NICUploadPage = () => {
           20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
 
+        /* Slow Rotating Background Animation */
+        @keyframes slowRotate {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
         .fade-in-up {
           animation: fadeInUp 0.6s ease-out;
         }
@@ -419,6 +293,13 @@ const NICUploadPage = () => {
             animation: fadeInUp 0.4s ease-out;
           }
         }
+
+        /* Reduce motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+          .slowRotate {
+            animation: none !important;
+          }
+        }
       `}</style>
     </>
   );
@@ -427,17 +308,13 @@ const NICUploadPage = () => {
 const styles = {
   wrapper: {
     minHeight: '100vh',
-    background: `
-      linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.85) 25%, rgba(51, 65, 85, 0.8) 50%, rgba(71, 85, 105, 0.75) 75%, rgba(100, 116, 139, 0.7) 100%),
-      url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')
-    `,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundAttachment: 'fixed',
+    background: `linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.85) 25%, rgba(51, 65, 85, 0.8) 50%, rgba(71, 85, 105, 0.75) 75%, rgba(100, 116, 139, 0.7) 100%)`,
     padding: '100px 20px 40px',
     display: 'flex',
     justifyContent: 'center',
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    position: 'relative',
+    overflow: 'hidden',
   },
   container: {
     maxWidth: '1000px',
